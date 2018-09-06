@@ -1,0 +1,2 @@
+		Start	End	Activity	Comment
+07/09/2018	00:30	01:00	Coding		Implemented init
