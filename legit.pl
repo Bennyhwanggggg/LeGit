@@ -34,6 +34,7 @@ if ($ARGV[0] eq "add") {
 		}
 		open my $index_file, '>>', $index_file or die "$0: error: Cannot open $index_file: $!\n";
 		foreach $file (@ARGV) {
+			open my $current_file, '<', $file or die "$0: error: Cannot open $file\n";
 			print $index_file "$file\n";
 		}
 		close $index_file
