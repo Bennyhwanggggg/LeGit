@@ -31,6 +31,76 @@ if (@ARGV == 1 and $ARGV[0] eq "init") {
 	}
 }
 
+# get the last commit number, -1 if no commit made
+sub getCommitNumber{
+	my $current_commit_number = -1;
+	my @list_of_commit_dirs = glob($commits_directory . '/*');
+	if (@list_of_commit_dirs) {
+		$current_commit_number = @list_of_commit_dirs - 1;
+	}
+	return $current_commit_number;
+}
+
+# check if index is same as repo
+sub checkIfIndexSameAsRepo {
+	my ($current_commit_number) = @_;
+	if ($current_commit_number < 0) { # when there is no previous commit
+		return 0;
+	}
+	# if ($current_commit_number != 0) {
+	my $latest_commit_folder = "$commits_directory/$current_commit_number";
+	for $file (glob($index_folder . '/*')) {
+		my $file_name = basename($file, "*");
+		my $check_file_path = "$latest_commit_folder/$file_name";
+		if ((!-e $check_file_path) or (compare($file, $check_file_path) != 0)) {
+			return 0;
+		} 
+	}
+	# }
+	return 1;
+}
+
+sub commitChanges {
+	my ($current_commit_number, $message) = @_;
+	my $new_commit_folder = "$commits_directory/$current_commit_number";
+	if (!-e $new_commit_folder) {
+		mkdir $new_commit_folder or die "$0: error: failed to create $new_commit_folder $!\n";
+	}
+	for $file (glob($index_folder . '/*')) {
+		my $file_name = basename($file, "*");
+		copy($file, "$new_commit_folder/$file_name") or die "$0: error: failed to copy $file into $new_commit_folder/$file. - $!\n";
+	}
+	open my $LOG, '>>', $log_file or die "$0: error: Failed to open $log_file\n";
+	print $LOG "$current_commit_number $message\n";
+	close $LOG;
+	print "Commited as commit $current_commit_number\n";
+}
+
+sub updateIndex {
+	my (@to_be_indexed_files) = @_;
+	open my $INDEX_OUT, '>', $index_file or die "$0: error: Cannot open $index_file: $!\n";
+	for $to_be_indexed_file (@to_be_indexed_files) {
+		open my $CURRENT_IN, '<', "$to_be_indexed_file" or die "$0: error: Cannot open $to_be_indexed_file - $!\n";
+		my $file_name = basename($to_be_indexed_file, "*");
+		my $file = $to_be_indexed_file;
+		print $INDEX_OUT "THIS IS A FILE LINE SEPARATOR<<<<<<=====$file=====>>>>>>THIS IS A FILE LINE SEPARATOR\n";
+		while ($line = <$CURRENT_IN>) {
+			print $INDEX_OUT $line;
+		}
+		close $CURRENT_IN;
+	}
+	close $INDEX_OUT;
+}
+
+# make target_folder look the same as source_folder
+sub matchTwoFolder {
+	my ($souce_folder, $target_folder) = @_;
+	
+}
+
+sub checkIfTwoFolderAreSame{
+	my ($folder_1, $folder_2) = @_;
+}
 # Add should check if the added file is the same as the one that is commited
 # if it is the same, don't do anything (don't add to index?)
 # otherwise, 
@@ -64,19 +134,20 @@ if ($ARGV[0] eq "add") {
 				print "$file existed in $index_file_path and no content change so no update made\n";
 			}
 		}
-		open my $INDEX_OUT, '>', $index_file or die "$0: error: Cannot open $index_file: $!\n";
+		# open my $INDEX_OUT, '>', $index_file or die "$0: error: Cannot open $index_file: $!\n";
 		my @to_be_indexed_files = glob($index_folder . '/*' );
-		for $to_be_indexed_file (@to_be_indexed_files) {
-			open my $CURRENT_IN, '<', "$to_be_indexed_file" or die "$0: error: Cannot open $to_be_indexed_file - $!\n";
-			$file = $to_be_indexed_file;
-			$file =~ s/.*\///;
-			print $INDEX_OUT "THIS IS A FILE LINE SEPARATOR<<<<<<=====$file=====>>>>>>THIS IS A FILE LINE SEPARATOR\n";
-			while ($line = <$CURRENT_IN>) {
-				print $INDEX_OUT $line;
-			}
-			close $CURRENT_IN;
-		}
-		close $INDEX_OUT;
+		updateIndex(@to_be_indexed_file);
+		# for $to_be_indexed_file (@to_be_indexed_files) {
+		# 	open my $CURRENT_IN, '<', "$to_be_indexed_file" or die "$0: error: Cannot open $to_be_indexed_file - $!\n";
+		# 	$file = $to_be_indexed_file;
+		# 	$file =~ s/.*\///;
+		# 	print $INDEX_OUT "THIS IS A FILE LINE SEPARATOR<<<<<<=====$file=====>>>>>>THIS IS A FILE LINE SEPARATOR\n";
+		# 	while ($line = <$CURRENT_IN>) {
+		# 		print $INDEX_OUT $line;
+		# 	}
+		# 	close $CURRENT_IN;
+		# }
+		# close $INDEX_OUT;
 		exit 0;
 	}
 }
@@ -89,61 +160,21 @@ if ($ARGV[0] eq "commit") {
 		print "usage: $0 commit [-a] -m commit-message\n";
 		exit 1;
 	}
-	$command = shift @ARGV;
+	my $command = shift @ARGV;
 	if ($command eq "-m") {
-		$message = shift @ARGV;
+		my $message = shift @ARGV;
 		if (@ARGV or !defined $message) {
 			print "usage: $0 commit [-a] -m commit-message\n";
 			exit 1;
 		}
-		# check if anything in index to commit
-		if (-z $index_file) {
+		my $current_commit_number = getCommitNumber();
+		# if commits have been made so far
+		if (-z $index_file or checkIfIndexSameAsRepo($current_commit_number) == 1){
 			print "nothing to commit\n";
 			exit 0;
 		}
-		# check index against current commit index
-		my $current_commit_number = -1;
-		my @list_of_commit_dirs = glob($commits_directory . '/*');
-		if (@list_of_commit_dirs) {
-			$current_commit_number = @list_of_commit_dirs - 1;
-		}
 		$current_commit_number++;
-		# if commits have been made so far
-		if ($current_commit_number != 0) {
-			$latest_commit_folder = $list_of_commit_dirs[$#list_of_commit_dirs];
-			$all_same = 1;
-			for $file (glob($index_folder . '/*')) {
-				$file_name = $file;
-				$file_name =~ s/.*\///;
-				$check_file_path = "$latest_commit_folder/$file_name";
-				if (!-e $check_file_path){
-					$all_same = 0;
-					last;
-				} elsif (compare($file, $check_file_path) != 0){
-					$all_same = 0;
-					last;
-				}
-			}
-			if ($all_same == 1) {
-				print "nothing to commit\n";
-				exit 0;
-			}
-		}
-
-		$new_commit_folder = "$commits_directory/$current_commit_number";
-		if (!-e $new_commit_folder) {
-			mkdir $new_commit_folder or die "$0: error: failed to create $new_commit_folder $!\n";
-		}
-		for $file (glob($index_folder . '/*')) {
-			$file_name = $file;
-			$file_name =~ s/.*\///;
-			copy($file, "$new_commit_folder/$file_name") or die "$0: error: failed to copy $file into $new_commit_folder/$file. - $!\n";
-		}
-
-		open my $LOG, '>>', $log_file or die "$0: error: Failed to open $log_file\n";
-		print $LOG "$current_commit_number $message\n";
-		close $LOG;
-		print "Commited as commit $current_commit_number\n";
+		commitChanges($current_commit_number, $message);
 		exit 0;
 	} elsif ($command eq "-a" || $command eq "-am") {
 		if ($command eq "-a" ) {
@@ -167,7 +198,7 @@ if ($ARGV[0] eq "commit") {
 		# just check if it is in index_file_path and rewrite index at the end by scanning through the index_file_path
 		$all_same = 1;
 		foreach $file_in_current_index (glob($index_folder . "/*")) {
-			$file_name = basename($file_in_current_index, '*');
+			$file_name = basename($file_in_current_index, "*");
 			if (!-e $file_name){
 				$all_same = 0;
 				unlink $file_in_current_index;
@@ -183,61 +214,31 @@ if ($ARGV[0] eq "commit") {
 			print "nothing to commit\n";
 			exit 0;
 		}
-		open my $INDEX_OUT, '>', $index_file or die "$0: error: Cannot open $index_file: $!\n";
-		my @to_be_indexed_files = glob($index_folder . '/*' );
-		for $to_be_indexed_file (@to_be_indexed_files) {
-			open my $CURRENT_IN, '<', "$to_be_indexed_file" or die "$0: error: Cannot open $to_be_indexed_file - $!\n";
-			$file = $to_be_indexed_file;
-			$file =~ s/.*\///;
-			print $INDEX_OUT "THIS IS A FILE LINE SEPARATOR<<<<<<=====$file=====>>>>>>THIS IS A FILE LINE SEPARATOR\n";
-			while ($line = <$CURRENT_IN>) {
-				print $INDEX_OUT $line;
-			}
-			close $CURRENT_IN;
-		}
-		close $INDEX_OUT;
 
-		my $current_commit_number = -1;
-		my @list_of_commit_dirs = glob($commits_directory . '/*');
-		if (@list_of_commit_dirs) {
-			$current_commit_number = @list_of_commit_dirs - 1;
+		my @to_be_indexed_files = glob($index_folder . '/*' );
+		updateIndex(@to_be_indexed_file);
+		my $current_commit_number = getCommitNumber();
+		if (checkIfIndexSameAsRepo($current_commit_number) == 1){
+			print "nothing to commit\n";
+			exit 0;
 		}
 		$current_commit_number++;
-		# if commits have been made so far
-		if ($current_commit_number != 0) {
-			$latest_commit_folder = $list_of_commit_dirs[$#list_of_commit_dirs];
-			$all_same = 1;
-			for $file (glob($index_folder . '/*')) {
-				$file_name = $file;
-				$file_name =~ s/.*\///;
-				$check_file_path = "$latest_commit_folder/$file_name";
-				if (!-e $check_file_path){
-					$all_same = 0;
-					last;
-				} elsif (compare($file, $check_file_path) != 0){
-					$all_same = 0;
-					last;
-				}
-			}
-			if ($all_same == 1) {
-				print "nothing to commit\n";
-				exit 0;
-			}
-		}
-		$new_commit_folder = "$commits_directory/$current_commit_number";
-		if (!-e $new_commit_folder) {
-			mkdir $new_commit_folder or die "$0: error: failed to create $new_commit_folder $!\n";
-		}
-		for $file (glob($index_folder . '/*')) {
-			$file_name = $file;
-			$file_name =~ s/.*\///;
-			copy($file, "$new_commit_folder/$file_name") or die "$0: error: failed to copy $file into $new_commit_folder/$file. - $!\n";
-		}
+		commitChanges($current_commit_number, $message);
 
-		open my $LOG, '>>', $log_file or die "$0: error: Failed to open $log_file\n";
-		print $LOG "$current_commit_number $message\n";
-		close $LOG;
-		print "Commited as commit $current_commit_number\n";
+		# $new_commit_folder = "$commits_directory/$current_commit_number";
+		# if (!-e $new_commit_folder) {
+		# 	mkdir $new_commit_folder or die "$0: error: failed to create $new_commit_folder $!\n";
+		# }
+		# for $file (glob($index_folder . '/*')) {
+		# 	$file_name = $file;
+		# 	$file_name =~ s/.*\///;
+		# 	copy($file, "$new_commit_folder/$file_name") or die "$0: error: failed to copy $file into $new_commit_folder/$file. - $!\n";
+		# }
+
+		# open my $LOG, '>>', $log_file or die "$0: error: Failed to open $log_file\n";
+		# print $LOG "$current_commit_number $message\n";
+		# close $LOG;
+		# print "Commited as commit $current_commit_number\n";
 		exit 0;
 	}
 }
@@ -248,7 +249,7 @@ if ($ARGV[0] eq "log") {
 		print "$0: error: your repository does not have any commits yet\n";
 		exit 1;
 	}
-	$command = shift @ARGV;
+	my $command = shift @ARGV;
 	if (@ARGV) {
 		print "usage: $0 log\n";
 		exit 1;
@@ -262,93 +263,94 @@ if ($ARGV[0] eq "log") {
 	exit 0;
 }
 
-# show command
-if ($ARGV[0] eq "show") {
-	shift @ARGV;
-	if (@ARGV == 0) {
-		print "usage: $0 <commit>:<filename>\n";
-		exit 1;
-	}
-	$commit_filename = shift @ARGV;
-	# if doesn't match input pattern, it is invalid object
-	# if pattern match, split by : then check if valid commit
-	if ($commit_filename !~ m/.*:.*/) {
-		print "invalid object $commit_filename\n";
-		exit 1;
-	}
-	@input = split /:/, $commit_filename;
-	if (@input > 2){
-		print "usage: $0 <commit>:<filename>\n";
-		exit 1;
-	}
-	$commit_number = shift @input;
-	$file = shift @input;
-	# if only one input, it must be the file name and we go to index to show its content
-	if ($commit_number eq ''){
-		$retrieved_file = "$index_folder/$file";
-		if (!-e $retrieved_file) {
-			print "$0: error: $file not found in index\n";
-			exit 1;
-		}
-		open my $OUT, '<', $retrieved_file or die "$0: error: failed to open $retrieved_file\n";
-		while ($line = <$OUT>) {
-			print $line;
-		}
-	} elsif ($commit_number =~ m/\d/) {
-		$retrieved_file_directory = "$commits_directory/$commit_number";
-		# if the commit number doesn't exist
-		if (!-e $retrieved_file_directory) {
-			print "$0: error: invalid commit $commit_number\n";
-			exit 1;
-		}
-		$retrieved_file = "$retrieved_file_directory/$file";
-		if (!-e $retrieved_file) {
-			print "$0: error: $file not found in commit $commit_number\n";
-			exit 1;
-		}
-		open my $OUT, '<', $retrieved_file or die "$0: error: failed to open $retrieved_file\n";
-		while ($line = <$OUT>) {
-			print $line;
-		}
-		exit 0;
-	} else {
-		print "$0: error: invalid commit $commit_number\n";
-		exit 1;
-	}
-}
+# # show command
+# if ($ARGV[0] eq "show") {
+# 	shift @ARGV;
+# 	if (@ARGV == 0) {
+# 		print "usage: $0 <commit>:<filename>\n";
+# 		exit 1;
+# 	}
+# 	$commit_filename = shift @ARGV;
+# 	# if doesn't match input pattern, it is invalid object
+# 	# if pattern match, split by : then check if valid commit
+# 	if ($commit_filename !~ m/.*:.*/) {
+# 		print "invalid object $commit_filename\n";
+# 		exit 1;
+# 	}
+# 	@input = split /:/, $commit_filename;
+# 	if (@input > 2){
+# 		print "usage: $0 <commit>:<filename>\n";
+# 		exit 1;
+# 	}
+# 	$commit_number = shift @input;
+# 	$file = shift @input;
+# 	# if only one input, it must be the file name and we go to index to show its content
+# 	if ($commit_number eq ''){
+# 		$retrieved_file = "$index_folder/$file";
+# 		if (!-e $retrieved_file) {
+# 			print "$0: error: $file not found in index\n";
+# 			exit 1;
+# 		}
+# 		open my $OUT, '<', $retrieved_file or die "$0: error: failed to open $retrieved_file\n";
+# 		while ($line = <$OUT>) {
+# 			print $line;
+# 		}
+# 		exit 0;
+# 	} elsif ($commit_number =~ m/\d/) {
+# 		$retrieved_file_directory = "$commits_directory/$commit_number";
+# 		# if the commit number doesn't exist
+# 		if (!-e $retrieved_file_directory) {
+# 			print "$0: error: invalid commit $commit_number\n";
+# 			exit 1;
+# 		}
+# 		$retrieved_file = "$retrieved_file_directory/$file";
+# 		if (!-e $retrieved_file) {
+# 			print "$0: error: $file not found in commit $commit_number\n";
+# 			exit 1;
+# 		}
+# 		open my $OUT, '<', $retrieved_file or die "$0: error: failed to open $retrieved_file\n";
+# 		while ($line = <$OUT>) {
+# 			print $line;
+# 		}
+# 		exit 0;
+# 	} else {
+# 		print "$0: error: invalid commit $commit_number\n";
+# 		exit 1;
+# 	}
+# }
 
-# status
-if ($ARGV[0] eq "status") {
-	my $current_commit_number = -1;
-	my @list_of_commit_dirs = glob($commits_directory . '/*');
-	if (@list_of_commit_dirs) {
-		$current_commit_number = @list_of_commit_dirs - 1;
-	} else {
-		print "$0: error: your repository does not have any commits yet\n";
-		exit 1;
-	}
-	print "$current_commit_number\n";
-	# compare the files in current directory with the one in commit
-	# a - file modified and changes in index.  --- current, index, repo are different. File was commited, then changed which was added then changed again wich was not added
-	# b - file modified												 --- index and repo are different. File was commited, then changed, which was added, but not commited
-	# c - changes in index 										--- file was commited, then modified but modification is not added
-	# d - file deleted												--- file was removed with rm, changes not added to index or commited
-	# e - deleted														--- file remove using legit rm, removed from index and current directory (does not rm from repo yet? so use this to show up on status)
-	# f - same as repo. 									-- commited and no changes made. repo, index, current are same
-	# g - added to index.  										--- first time added to index? not present in repo
-	# h - untracked
+# # status
+# if ($ARGV[0] eq "status") {
+# 	my $current_commit_number = -1;
+# 	my @list_of_commit_dirs = glob($commits_directory . '/*');
+# 	if (@list_of_commit_dirs) {
+# 		$current_commit_number = @list_of_commit_dirs - 1;
+# 	} else {
+# 		print "$0: error: your repository does not have any commits yet\n";
+# 		exit 1;
+# 	}
+# 	print "$current_commit_number\n";
+# 	# compare the files in current directory with the one in commit
+# 	# a - file modified and changes in index.  --- current, index, repo are different. File was commited, then changed which was added then changed again wich was not added
+# 	# b - file modified												 --- index and repo are different. File was commited, then changed, which was added, but not commited
+# 	# c - changes in index 										--- file was commited, then modified but modification is not added
+# 	# d - file deleted												--- file was removed with rm, changes not added to index or commited
+# 	# e - deleted														--- file remove using legit rm, removed from index and current directory (does not rm from repo yet? so use this to show up on status)
+# 	# f - same as repo. 									-- commited and no changes made. repo, index, current are same
+# 	# g - added to index.  										--- first time added to index? not present in repo
+# 	# h - untracked
 
-	# rm => cannot work when repo is different from what is in current (file was commited before then modified. new modification not added) (err: in repository is different to working file)
-	# => cannot work when index and repo are different (err: has changes staged in the index)
-	foreach $file (glob("*")){
-		$path_in_repo = "$commits_directory/$current_commit_number/$file";
-		if (-e $path_in_repo) {
-			if (compare($file, $path_in_repo) == 0){
-				$status{$file} = 'same as repo';
-			}
-		} else {
-			$status{$file} = 'untracked';
-		}
-	}
+# 	# rm => cannot work when repo is different from what is in current (file was commited before then modified. new modification not added) (err: in repository is different to working file)
+# 	# => cannot work when index and repo are different (err: has changes staged in the index)
+# 	foreach $file (glob("*")){
+# 		$path_in_repo = "$commits_directory/$current_commit_number/$file";
+# 		if (-e $path_in_repo) {
+# 			if (compare($file, $path_in_repo) == 0){
+# 				$status{$file} = 'same as repo';
+# 			}
+# 		} else {
+# 			$status{$file} = 'untracked';
+# 		}
+# 	}
 
-}
+# }
