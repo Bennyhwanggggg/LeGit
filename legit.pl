@@ -2,7 +2,7 @@
 
 use File::Compare;
 use File::Copy;
-use File::BaseName;
+use File::Basename;
 
 if (!@ARGV) {
 	print "Usage: $0 <comand>\n";
@@ -92,7 +92,7 @@ if ($ARGV[0] eq "commit") {
 	$command = shift @ARGV;
 	if ($command eq "-m") {
 		$message = shift @ARGV;
-		if (@ARGV) {
+		if (@ARGV or !defined $message) {
 			print "usage: $0 commit [-a] -m commit-message\n";
 			exit 1;
 		}
@@ -108,7 +108,6 @@ if ($ARGV[0] eq "commit") {
 			$current_commit_number = @list_of_commit_dirs - 1;
 		}
 		$current_commit_number++;
-		print $current_commit_number, "\n";
 		# if commits have been made so far
 		if ($current_commit_number != 0) {
 			$latest_commit_folder = $list_of_commit_dirs[$#list_of_commit_dirs];
@@ -131,6 +130,100 @@ if ($ARGV[0] eq "commit") {
 			}
 		}
 
+		$new_commit_folder = "$commits_directory/$current_commit_number";
+		if (!-e $new_commit_folder) {
+			mkdir $new_commit_folder or die "$0: error: failed to create $new_commit_folder $!\n";
+		}
+		for $file (glob($index_folder . '/*')) {
+			$file_name = $file;
+			$file_name =~ s/.*\///;
+			copy($file, "$new_commit_folder/$file_name") or die "$0: error: failed to copy $file into $new_commit_folder/$file. - $!\n";
+		}
+
+		open my $LOG, '>>', $log_file or die "$0: error: Failed to open $log_file\n";
+		print $LOG "$current_commit_number $message\n";
+		close $LOG;
+		print "Commited as commit $current_commit_number\n";
+		exit 0;
+	} elsif ($command eq "-a" || $command eq "-am") {
+		if ($command eq "-a" ) {
+			$command2 = shift @ARGV; 
+			if ($command2 ne "-m") {
+				print "usage: $0 commit [-a] -m commit-message\n";
+				exit 1;
+			}
+		}
+		$message = shift @ARGV;
+		if (@ARGV or !defined $message) {
+			print "usage: $0 commit [-a] -m commit-message\n";
+			exit 1;
+		}
+		# get all the files in the current index and update them
+		# check if anything in index to commit
+		if (-z $index_file) {
+			print "nothing to commit\n";
+			exit 0;
+		}
+		# just check if it is in index_file_path and rewrite index at the end by scanning through the index_file_path
+		$all_same = 1;
+		foreach $file_in_current_index (glob($index_folder . "/*")) {
+			$file_name = basename($file_in_current_index, '*');
+			if (!-e $file_name){
+				$all_same = 0;
+				unlink $file_in_current_index;
+				next;
+			}
+			if (compare($file_name, $file_in_current_index) != 0){
+				$all_same = 0;
+			}
+			copy($file_name, $file_in_current_index) or die "$0: error: failed to copy $file_name into $file_in_current_index\n"; 
+			# if a file is deleted, it should be deleted from index as well 
+		}
+		if ($all_same == 1){
+			print "nothing to commit\n";
+			exit 0;
+		}
+		open my $INDEX_OUT, '>', $index_file or die "$0: error: Cannot open $index_file: $!\n";
+		my @to_be_indexed_files = glob($index_folder . '/*' );
+		for $to_be_indexed_file (@to_be_indexed_files) {
+			open my $CURRENT_IN, '<', "$to_be_indexed_file" or die "$0: error: Cannot open $to_be_indexed_file - $!\n";
+			$file = $to_be_indexed_file;
+			$file =~ s/.*\///;
+			print $INDEX_OUT "THIS IS A FILE LINE SEPARATOR<<<<<<=====$file=====>>>>>>THIS IS A FILE LINE SEPARATOR\n";
+			while ($line = <$CURRENT_IN>) {
+				print $INDEX_OUT $line;
+			}
+			close $CURRENT_IN;
+		}
+		close $INDEX_OUT;
+
+		my $current_commit_number = -1;
+		my @list_of_commit_dirs = glob($commits_directory . '/*');
+		if (@list_of_commit_dirs) {
+			$current_commit_number = @list_of_commit_dirs - 1;
+		}
+		$current_commit_number++;
+		# if commits have been made so far
+		if ($current_commit_number != 0) {
+			$latest_commit_folder = $list_of_commit_dirs[$#list_of_commit_dirs];
+			$all_same = 1;
+			for $file (glob($index_folder . '/*')) {
+				$file_name = $file;
+				$file_name =~ s/.*\///;
+				$check_file_path = "$latest_commit_folder/$file_name";
+				if (!-e $check_file_path){
+					$all_same = 0;
+					last;
+				} elsif (compare($file, $check_file_path) != 0){
+					$all_same = 0;
+					last;
+				}
+			}
+			if ($all_same == 1) {
+				print "nothing to commit\n";
+				exit 0;
+			}
+		}
 		$new_commit_folder = "$commits_directory/$current_commit_number";
 		if (!-e $new_commit_folder) {
 			mkdir $new_commit_folder or die "$0: error: failed to create $new_commit_folder $!\n";
@@ -217,6 +310,7 @@ if ($ARGV[0] eq "show") {
 		while ($line = <$OUT>) {
 			print $line;
 		}
+		exit 0;
 	} else {
 		print "$0: error: invalid commit $commit_number\n";
 		exit 1;

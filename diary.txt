@@ -1,5 +1,6 @@
 		Start	End	Activity		Comment
 07/09/2018	00:30	00:45	Coding			Implemented init
 08/09/2018	22:30	00:50	Coding			Implemented add and commit
-09/09/2017	11:00	13:30	Coding and Debug	update add
-09/09/2017	14:00	15:00	Coding			Implemented log
+09/09/2018	11:00	13:30	Coding and Debug	update add and commit
+09/09/2018	14:00	15:00	Coding			Implemented log
+09/09/2018	18:00	20:00	Coding			Implemented show
