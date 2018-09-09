@@ -316,3 +316,39 @@ if ($ARGV[0] eq "show") {
 		exit 1;
 	}
 }
+
+# status
+if ($ARGV[0] eq "status") {
+	my $current_commit_number = -1;
+	my @list_of_commit_dirs = glob($commits_directory . '/*');
+	if (@list_of_commit_dirs) {
+		$current_commit_number = @list_of_commit_dirs - 1;
+	} else {
+		print "$0: error: your repository does not have any commits yet\n";
+		exit 1;
+	}
+	print "$current_commit_number\n";
+	# compare the files in current directory with the one in commit
+	# a - file modified and changes in index.  --- current, index, repo are different. File was commited, then changed which was added then changed again wich was not added
+	# b - file modified												 --- index and repo are different. File was commited, then changed, which was added, but not commited
+	# c - changes in index 										--- file was commited, then modified but modification is not added
+	# d - file deleted												--- file was removed with rm, changes not added to index or commited
+	# e - deleted														--- file remove using legit rm, removed from index and current directory (does not rm from repo yet? so use this to show up on status)
+	# f - same as repo. 									-- commited and no changes made. repo, index, current are same
+	# g - added to index.  										--- first time added to index? not present in repo
+	# h - untracked
+
+	# rm => cannot work when repo is different from what is in current (file was commited before then modified. new modification not added) (err: in repository is different to working file)
+	# => cannot work when index and repo are different (err: has changes staged in the index)
+	foreach $file (glob("*")){
+		$path_in_repo = "$commits_directory/$current_commit_number/$file";
+		if (-e $path_in_repo) {
+			if (compare($file, $path_in_repo) == 0){
+				$status{$file} = 'same as repo';
+			}
+		} else {
+			$status{$file} = 'untracked';
+		}
+	}
+
+}
