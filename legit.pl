@@ -81,6 +81,7 @@ if ($ARGV[0] eq "add") {
 	}
 }
 
+# Commit command
 # when commit compare the current index with current commit index
 if ($ARGV[0] eq "commit") {
 	shift @ARGV;
@@ -148,6 +149,7 @@ if ($ARGV[0] eq "commit") {
 	}
 }
 
+# log command
 if ($ARGV[0] eq "log") {
 	if (-z $log_file) {
 		print "$0: error: your repository does not have any commits yet\n";
@@ -165,4 +167,58 @@ if ($ARGV[0] eq "log") {
 		print $line;
 	}
 	exit 0;
+}
+
+# show command
+if ($ARGV[0] eq "show") {
+	shift @ARGV;
+	if (@ARGV == 0) {
+		print "usage: $0 <commit>:<filename>\n";
+		exit 1;
+	}
+	$commit_filename = shift @ARGV;
+	# if doesn't match input pattern, it is invalid object
+	# if pattern match, split by : then check if valid commit
+	if ($commit_filename !~ m/.*:.*/) {
+		print "invalid object $commit_filename\n";
+		exit 1;
+	}
+	@input = split /:/, $commit_filename;
+	if (@input > 2){
+		print "usage: $0 <commit>:<filename>\n";
+		exit 1;
+	}
+	$commit_number = shift @input;
+	$file = shift @input;
+	# if only one input, it must be the file name and we go to index to show its content
+	if ($commit_number eq ''){
+		$retrieved_file = "$index_folder/$file";
+		if (!-e $retrieved_file) {
+			print "$0: error: $file not found in index\n";
+			exit 1;
+		}
+		open my $OUT, '<', $retrieved_file or die "$0: error: failed to open $retrieved_file\n";
+		while ($line = <$OUT>) {
+			print $line;
+		}
+	} elsif ($commit_number =~ m/\d/) {
+		$retrieved_file_directory = "$commits_directory/$commit_number";
+		# if the commit number doesn't exist
+		if (!-e $retrieved_file_directory) {
+			print "$0: error: invalid commit $commit_number\n";
+			exit 1;
+		}
+		$retrieved_file = "$retrieved_file_directory/$file";
+		if (!-e $retrieved_file) {
+			print "$0: error: $file not found in commit $commit_number\n";
+			exit 1;
+		}
+		open my $OUT, '<', $retrieved_file or die "$0: error: failed to open $retrieved_file\n";
+		while ($line = <$OUT>) {
+			print $line;
+		}
+	} else {
+		print "$0: error: invalid commit $commit_number\n";
+		exit 1;
+	}
 }
