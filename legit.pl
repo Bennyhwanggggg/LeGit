@@ -92,14 +92,20 @@ sub updateIndex {
 	close $INDEX_OUT;
 }
 
-# make target_folder look the same as source_folder
-sub matchTwoFolder {
-	my ($souce_folder, $target_folder) = @_;
-	
+# make target_folder look the same as source_folder by copying everythin from one to another
+sub updateIndexFolder {
+	my (@files) = @_;
+	foreach $file (@files) {
+		open my $CHECKER, '<', $file or die "$0: error: $file doesn't exist\n";
+		close $CHECKER;
+		my $index_file_path = "$index_folder/$file";
+		copy($file, $index_file_path) or die "$0: error: failed to copy $file into $index_file_path\n";
+	}
 }
 
 sub checkIfTwoFolderAreSame{
 	my ($folder_1, $folder_2) = @_;
+
 }
 # Add should check if the added file is the same as the one that is commited
 # if it is the same, don't do anything (don't add to index?)
@@ -119,35 +125,9 @@ if ($ARGV[0] eq "add") {
 		}
 
 		# just check if it is in index_file_path and rewrite index at the end by scanning through the index_file_path
-		foreach $file (@ARGV) {
-			open $CHECKER, '<', $file or die "$0: error: cannot open $file\n";
-			close $CHECKER;
-			# check if it already exist
-			$index_file_path = "$index_folder/$file";
-			if (!-e $index_file_path) {
-				copy($file, $index_file_path) or die "$0: error: failed to copy $file into $index_file_path\n";
-				print "$file didnt exist in $index_file_path, so it is now copied into it\n";
-			} elsif (compare($file, $index_file_path) != 0) { # != 0 means are different
-				copy($file, $index_file_path) or die "$0: error: failed to copy $file into $index_file_path - $!\n";
-				print "$file existed in $index_file_path, but changes were detected so it is now updated\n";
-			} else {
-				print "$file existed in $index_file_path and no content change so no update made\n";
-			}
-		}
-		# open my $INDEX_OUT, '>', $index_file or die "$0: error: Cannot open $index_file: $!\n";
+		updateIndexFolder(@ARGV);
 		my @to_be_indexed_files = glob($index_folder . '/*' );
-		updateIndex(@to_be_indexed_file);
-		# for $to_be_indexed_file (@to_be_indexed_files) {
-		# 	open my $CURRENT_IN, '<', "$to_be_indexed_file" or die "$0: error: Cannot open $to_be_indexed_file - $!\n";
-		# 	$file = $to_be_indexed_file;
-		# 	$file =~ s/.*\///;
-		# 	print $INDEX_OUT "THIS IS A FILE LINE SEPARATOR<<<<<<=====$file=====>>>>>>THIS IS A FILE LINE SEPARATOR\n";
-		# 	while ($line = <$CURRENT_IN>) {
-		# 		print $INDEX_OUT $line;
-		# 	}
-		# 	close $CURRENT_IN;
-		# }
-		# close $INDEX_OUT;
+		updateIndex(@to_be_indexed_files);
 		exit 0;
 	}
 }
@@ -224,21 +204,6 @@ if ($ARGV[0] eq "commit") {
 		}
 		$current_commit_number++;
 		commitChanges($current_commit_number, $message);
-
-		# $new_commit_folder = "$commits_directory/$current_commit_number";
-		# if (!-e $new_commit_folder) {
-		# 	mkdir $new_commit_folder or die "$0: error: failed to create $new_commit_folder $!\n";
-		# }
-		# for $file (glob($index_folder . '/*')) {
-		# 	$file_name = $file;
-		# 	$file_name =~ s/.*\///;
-		# 	copy($file, "$new_commit_folder/$file_name") or die "$0: error: failed to copy $file into $new_commit_folder/$file. - $!\n";
-		# }
-
-		# open my $LOG, '>>', $log_file or die "$0: error: Failed to open $log_file\n";
-		# print $LOG "$current_commit_number $message\n";
-		# close $LOG;
-		# print "Commited as commit $current_commit_number\n";
 		exit 0;
 	}
 }
@@ -263,61 +228,61 @@ if ($ARGV[0] eq "log") {
 	exit 0;
 }
 
-# # show command
-# if ($ARGV[0] eq "show") {
-# 	shift @ARGV;
-# 	if (@ARGV == 0) {
-# 		print "usage: $0 <commit>:<filename>\n";
-# 		exit 1;
-# 	}
-# 	$commit_filename = shift @ARGV;
-# 	# if doesn't match input pattern, it is invalid object
-# 	# if pattern match, split by : then check if valid commit
-# 	if ($commit_filename !~ m/.*:.*/) {
-# 		print "invalid object $commit_filename\n";
-# 		exit 1;
-# 	}
-# 	@input = split /:/, $commit_filename;
-# 	if (@input > 2){
-# 		print "usage: $0 <commit>:<filename>\n";
-# 		exit 1;
-# 	}
-# 	$commit_number = shift @input;
-# 	$file = shift @input;
-# 	# if only one input, it must be the file name and we go to index to show its content
-# 	if ($commit_number eq ''){
-# 		$retrieved_file = "$index_folder/$file";
-# 		if (!-e $retrieved_file) {
-# 			print "$0: error: $file not found in index\n";
-# 			exit 1;
-# 		}
-# 		open my $OUT, '<', $retrieved_file or die "$0: error: failed to open $retrieved_file\n";
-# 		while ($line = <$OUT>) {
-# 			print $line;
-# 		}
-# 		exit 0;
-# 	} elsif ($commit_number =~ m/\d/) {
-# 		$retrieved_file_directory = "$commits_directory/$commit_number";
-# 		# if the commit number doesn't exist
-# 		if (!-e $retrieved_file_directory) {
-# 			print "$0: error: invalid commit $commit_number\n";
-# 			exit 1;
-# 		}
-# 		$retrieved_file = "$retrieved_file_directory/$file";
-# 		if (!-e $retrieved_file) {
-# 			print "$0: error: $file not found in commit $commit_number\n";
-# 			exit 1;
-# 		}
-# 		open my $OUT, '<', $retrieved_file or die "$0: error: failed to open $retrieved_file\n";
-# 		while ($line = <$OUT>) {
-# 			print $line;
-# 		}
-# 		exit 0;
-# 	} else {
-# 		print "$0: error: invalid commit $commit_number\n";
-# 		exit 1;
-# 	}
-# }
+# show command
+if ($ARGV[0] eq "show") {
+	shift @ARGV;
+	if (@ARGV == 0) {
+		print "usage: $0 <commit>:<filename>\n";
+		exit 1;
+	}
+	$commit_filename = shift @ARGV;
+	# if doesn't match input pattern, it is invalid object
+	# if pattern match, split by : then check if valid commit
+	if ($commit_filename !~ m/.*:.*/) {
+		print "invalid object $commit_filename\n";
+		exit 1;
+	}
+	@input = split /:/, $commit_filename;
+	if (@input > 2){
+		print "usage: $0 <commit>:<filename>\n";
+		exit 1;
+	}
+	$commit_number = shift @input;
+	$file = shift @input;
+	# if only one input, it must be the file name and we go to index to show its content
+	if ($commit_number eq ''){
+		$retrieved_file = "$index_folder/$file";
+		if (!-e $retrieved_file) {
+			print "$0: error: $file not found in index\n";
+			exit 1;
+		}
+		open my $OUT, '<', $retrieved_file or die "$0: error: failed to open $retrieved_file\n";
+		while ($line = <$OUT>) {
+			print $line;
+		}
+		exit 0;
+	} elsif ($commit_number =~ m/\d/) {
+		$retrieved_file_directory = "$commits_directory/$commit_number";
+		# if the commit number doesn't exist
+		if (!-e $retrieved_file_directory) {
+			print "$0: error: invalid commit $commit_number\n";
+			exit 1;
+		}
+		$retrieved_file = "$retrieved_file_directory/$file";
+		if (!-e $retrieved_file) {
+			print "$0: error: $file not found in commit $commit_number\n";
+			exit 1;
+		}
+		open my $OUT, '<', $retrieved_file or die "$0: error: failed to open $retrieved_file\n";
+		while ($line = <$OUT>) {
+			print $line;
+		}
+		exit 0;
+	} else {
+		print "$0: error: invalid commit $commit_number\n";
+		exit 1;
+	}
+}
 
 # # status
 # if ($ARGV[0] eq "status") {

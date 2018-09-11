@@ -4,4 +4,5 @@
 09/09/2018	11:00	13:30	Coding and Debug	update add and commit
 09/09/2018	14:00	15:00	Coding			Implemented log
 09/09/2018	18:00	20:00	Coding			Implemented show
-09/09/2018	23:00	14L00	Refractoring		Refractor add and commit
+09/09/2018	23:00	14:00	Refractoring		Refractor add and commiti
+11/09/2018	23:00	23:30	Refractoring		Refractor add 
