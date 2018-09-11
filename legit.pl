@@ -56,7 +56,14 @@ sub checkIfIndexSameAsRepo {
 			return 0;
 		} 
 	}
-	# }
+
+	for $file (glob($latest_commit_folder . '/*')) {
+		my $file_name = basename($file, "*");
+		my $check_file_path = "$index_folder/$file_name";
+		if ((!-e $check_file_path) or (compare($file, $check_file_path) != 0)) {
+			return 0;
+		} 
+	}
 	return 1;
 }
 
@@ -96,10 +103,14 @@ sub updateIndex {
 sub updateIndexFolder {
 	my (@files) = @_;
 	foreach $file (@files) {
-		open my $CHECKER, '<', $file or die "$0: error: $file doesn't exist\n";
-		close $CHECKER;
 		my $index_file_path = "$index_folder/$file";
-		copy($file, $index_file_path) or die "$0: error: failed to copy $file into $index_file_path\n";
+		if (!-e $file && -e $index_file_path) { # if file was removed
+			unlink $index_file_path;
+		} else {
+			open my $CHECKER, '<', $file or die "$0: error: cannot open $file\n";
+			close $CHECKER;
+			copy($file, $index_file_path) or die "$0: error: failed to copy $file into $index_file_path\n";
+		}
 	}
 }
 
