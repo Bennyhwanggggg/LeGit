@@ -75,7 +75,7 @@ sub commitChanges {
 	}
 	for $file (glob($index_folder . '/*')) {
 		my $file_name = basename($file, "*");
-		copy($file, "$new_commit_folder/$file_name") or die "legit.pl: error: failed to copy $file into $new_commit_folder/$file. - $!\n";
+		copy($file, "$new_commit_folder/$file_name") or die "legit.pl: error: failed to copy '$file' into '$new_commit_folder/$file'. - $!\n";
 	}
 	open my $LOG, '>>', $log_file or die "legit.pl: error: Failed to open $log_file\n";
 	print $LOG "$current_commit_number $message\n";
@@ -112,7 +112,7 @@ sub updateIndexFolder {
 		} else {
 			open my $CHECKER, '<', $file or die "legit.pl: error: can not open '$file'\n";
 			close $CHECKER;
-			copy($file, $index_file_path) or die "legit.pl: error: failed to copy $file into $index_file_path\n";
+			copy($file, $index_file_path) or die "legit.pl: error: failed to copy '$file' into $index_file_path\n";
 		}
 	}
 }
@@ -276,7 +276,7 @@ if ($ARGV[0] eq "show") {
 		}
 		$retrieved_file = "$index_folder/$file";
 		if (!-e $retrieved_file) {
-			print "legit.pl: error: $file not found in index\n";
+			print "legit.pl: error: '$file' not found in index\n";
 			exit 1;
 		}
 		open my $OUT, '<', $retrieved_file or die "legit.pl: error: failed to open $retrieved_file\n";
@@ -293,7 +293,7 @@ if ($ARGV[0] eq "show") {
 		}
 		$retrieved_file = "$retrieved_file_directory/$file";
 		if (!-e $retrieved_file) {
-			print "legit.pl: error: $file not found in commit $commit_number\n";
+			print "legit.pl: error: '$file' not found in commit $commit_number\n";
 			exit 1;
 		}
 		open my $OUT, '<', $retrieved_file or die "legit.pl: error: failed to open $retrieved_file\n";
@@ -304,6 +304,77 @@ if ($ARGV[0] eq "show") {
 	} else {
 		print "legit.pl: error: invalid commit $commit_number\n";
 		exit 1;
+	}
+}
+
+# rm
+if ($ARGV[0] eq "rm") {
+	my $command = shift @ARGV;
+	if ($ARGV[0] eq "--cached") {
+		# only remove from index
+		shift @ARGV;
+		for $file (@ARGV) { # reference implementation checks everything first before deleting
+			my $index_file_path = "$index_folder/$file"; 
+			if (!-e $index_file_path){
+				print "legit.pl: error: '$file' is not in the legit repository\n";
+				exit 1;
+			}
+		}
+		for $file (@ARGV) {
+			my $index_file_path = "$index_folder/$file"; 
+			unlink $index_file_path;
+			my @to_be_indexed_files = glob($index_folder . '/*' );
+			updateIndex(@to_be_indexed_files);
+		}
+		exit 0;
+	} elsif ($ARGV[0] eq "--forced") {
+		shift @ARGV;
+
+		# only check if it is in index?
+		for $file (@ARGV) {
+			my $index_file_path = "$index_folder/$file";
+			if (!-e $index_file_path) {
+				print "legit.pl: error: '$file' is not in the legit repository\n";
+				exit 1;
+			}
+		}
+		for $file (@ARGV) {
+			if (-e $file) {
+				unlink $file;
+			}
+			updateIndexFolder($file);
+		}
+		my @to_be_indexed_files = glob($index_folder . '/*' );
+		updateIndex(@to_be_indexed_files);
+		exit 0;
+	} else {
+		my $current_commit_number = getCommitNumber();
+		for $file (@ARGV) {
+			my $index_file_path = "$index_folder/$file";
+			if (-e $index_file_path) {
+				print "legit.pl: error: '$file' is not in the legit repository\n";
+				exit 1;
+			}
+		}
+		for $file (@ARGV) {
+			my $commited_file = "$commits_directory/$current_commit_number/$file";
+			my $index_file_path = "$index_folder/$file";
+			if (! -e $commited_file or compare($commited_file, $file) != 0) {
+				print "legit.pl: error: '$file' in repository is different to working file\n";
+				exit 1;
+			} elsif (compare($index_file_path, $file) != 0) {
+				print "legit.pl: error: '$file' has changes staged in the index\n"
+			}
+		}
+		for $file (@ARGV) {
+			if (-e $file) {
+				unlink $file;
+			}
+			updateIndexFolder($file);
+		}
+		my @to_be_indexed_files = glob($index_folder . '/*' );
+		updateIndex(@to_be_indexed_files);
+		exit 0;
 	}
 }
 
