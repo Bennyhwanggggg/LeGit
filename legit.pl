@@ -80,15 +80,15 @@ sub commitChanges {
 	open my $LOG, '>>', $log_file or die "legit.pl: error: Failed to open $log_file\n";
 	print $LOG "$current_commit_number $message\n";
 	close $LOG;
-	print "Commited as commit $current_commit_number\n";
+	print "Committed as commit $current_commit_number\n";
 }
 
 sub updateIndex {
 	my (@to_be_indexed_files) = @_;
-	open my $INDEX_OUT, '>', $index_file or die "legit.pl: error: Cannot open $index_file: $!\n";
+	open my $INDEX_OUT, '>', $index_file or die "legit.pl: error: can not open $index_file: $!\n";
 	for $to_be_indexed_file (@to_be_indexed_files) {
 		if (-e $to_be_indexed_file) {
-			open my $CURRENT_IN, '<', "$to_be_indexed_file" or die "legit.pl: error: Cannot open $to_be_indexed_file - $!\n";
+			open my $CURRENT_IN, '<', "$to_be_indexed_file" or die "legit.pl: error: can not open $to_be_indexed_file - $!\n";
 			my $file_name = basename($to_be_indexed_file, "*");
 			my $file = $to_be_indexed_file;
 			print $INDEX_OUT "THIS IS A FILE LINE SEPARATOR<<<<<<=====$file=====>>>>>>THIS IS A FILE LINE SEPARATOR\n";
@@ -110,7 +110,7 @@ sub updateIndexFolder {
 		if (!-e $file && -e $index_file_path) { # if file was removed
 			unlink $index_file_path;
 		} else {
-			open my $CHECKER, '<', $file or die "legit.pl: error: cannot open '$file'\n";
+			open my $CHECKER, '<', $file or die "legit.pl: error: can not open '$file'\n";
 			close $CHECKER;
 			copy($file, $index_file_path) or die "legit.pl: error: failed to copy $file into $index_file_path\n";
 		}
@@ -269,6 +269,11 @@ if ($ARGV[0] eq "show") {
 	$file = shift @input;
 	# if only one input, it must be the file name and we go to index to show its content
 	if ($commit_number eq ''){
+		# check if any commit yet
+		if (!-e "$commits_directory/0") {
+			print "legit.pl: error: your repository does not have any commits yet\n";
+			exit 1;
+		}
 		$retrieved_file = "$index_folder/$file";
 		if (!-e $retrieved_file) {
 			print "legit.pl: error: $file not found in index\n";
