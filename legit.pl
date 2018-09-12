@@ -87,14 +87,16 @@ sub updateIndex {
 	my (@to_be_indexed_files) = @_;
 	open my $INDEX_OUT, '>', $index_file or die "legit.pl: error: Cannot open $index_file: $!\n";
 	for $to_be_indexed_file (@to_be_indexed_files) {
-		open my $CURRENT_IN, '<', "$to_be_indexed_file" or die "legit.pl: error: Cannot open $to_be_indexed_file - $!\n";
-		my $file_name = basename($to_be_indexed_file, "*");
-		my $file = $to_be_indexed_file;
-		print $INDEX_OUT "THIS IS A FILE LINE SEPARATOR<<<<<<=====$file=====>>>>>>THIS IS A FILE LINE SEPARATOR\n";
-		while ($line = <$CURRENT_IN>) {
-			print $INDEX_OUT $line;
+		if (-e $to_be_indexed_file) {
+			open my $CURRENT_IN, '<', "$to_be_indexed_file" or die "legit.pl: error: Cannot open $to_be_indexed_file - $!\n";
+			my $file_name = basename($to_be_indexed_file, "*");
+			my $file = $to_be_indexed_file;
+			print $INDEX_OUT "THIS IS A FILE LINE SEPARATOR<<<<<<=====$file=====>>>>>>THIS IS A FILE LINE SEPARATOR\n";
+			while ($line = <$CURRENT_IN>) {
+				print $INDEX_OUT $line;
+			}
+			close $CURRENT_IN;
 		}
-		close $CURRENT_IN;
 	}
 	close $INDEX_OUT;
 }
@@ -104,12 +106,11 @@ sub updateIndexFolder {
 	my (@files) = @_;
 	foreach $file (@files) {
 		my $file = basename($file, '*');
-		print("$file updated\n");
 		my $index_file_path = "$index_folder/$file";
 		if (!-e $file && -e $index_file_path) { # if file was removed
 			unlink $index_file_path;
 		} else {
-			open my $CHECKER, '<', $file or die "legit.pl: error: cannot open $file\n";
+			open my $CHECKER, '<', $file or die "legit.pl: error: cannot open '$file'\n";
 			close $CHECKER;
 			copy($file, $index_file_path) or die "legit.pl: error: failed to copy $file into $index_file_path\n";
 		}
@@ -213,7 +214,7 @@ if ($ARGV[0] eq "commit") {
 
 		my @to_be_indexed_files = glob($index_folder . '/*' );
 		updateIndexFolder(@to_be_indexed_files);
-		updateIndex(@to_be_indexed_file);
+		updateIndex(@to_be_indexed_files);
 		my $current_commit_number = getCommitNumber();
 		if (checkIfIndexSameAsRepo($current_commit_number) == 1){
 			print "nothing to commit\n";
