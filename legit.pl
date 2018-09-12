@@ -71,13 +71,13 @@ sub commitChanges {
 	my ($current_commit_number, $message) = @_;
 	my $new_commit_folder = "$commits_directory/$current_commit_number";
 	if (!-e $new_commit_folder) {
-		mkdir $new_commit_folder or die "$0: error: failed to create $new_commit_folder $!\n";
+		mkdir $new_commit_folder or die "legit.pl: error: failed to create $new_commit_folder $!\n";
 	}
 	for $file (glob($index_folder . '/*')) {
 		my $file_name = basename($file, "*");
-		copy($file, "$new_commit_folder/$file_name") or die "$0: error: failed to copy $file into $new_commit_folder/$file. - $!\n";
+		copy($file, "$new_commit_folder/$file_name") or die "legit.pl: error: failed to copy $file into $new_commit_folder/$file. - $!\n";
 	}
-	open my $LOG, '>>', $log_file or die "$0: error: Failed to open $log_file\n";
+	open my $LOG, '>>', $log_file or die "legit.pl: error: Failed to open $log_file\n";
 	print $LOG "$current_commit_number $message\n";
 	close $LOG;
 	print "Commited as commit $current_commit_number\n";
@@ -85,9 +85,9 @@ sub commitChanges {
 
 sub updateIndex {
 	my (@to_be_indexed_files) = @_;
-	open my $INDEX_OUT, '>', $index_file or die "$0: error: Cannot open $index_file: $!\n";
+	open my $INDEX_OUT, '>', $index_file or die "legit.pl: error: Cannot open $index_file: $!\n";
 	for $to_be_indexed_file (@to_be_indexed_files) {
-		open my $CURRENT_IN, '<', "$to_be_indexed_file" or die "$0: error: Cannot open $to_be_indexed_file - $!\n";
+		open my $CURRENT_IN, '<', "$to_be_indexed_file" or die "legit.pl: error: Cannot open $to_be_indexed_file - $!\n";
 		my $file_name = basename($to_be_indexed_file, "*");
 		my $file = $to_be_indexed_file;
 		print $INDEX_OUT "THIS IS A FILE LINE SEPARATOR<<<<<<=====$file=====>>>>>>THIS IS A FILE LINE SEPARATOR\n";
@@ -109,9 +109,9 @@ sub updateIndexFolder {
 		if (!-e $file && -e $index_file_path) { # if file was removed
 			unlink $index_file_path;
 		} else {
-			open my $CHECKER, '<', $file or die "$0: error: cannot open $file\n";
+			open my $CHECKER, '<', $file or die "legit.pl: error: cannot open $file\n";
 			close $CHECKER;
-			copy($file, $index_file_path) or die "$0: error: failed to copy $file into $index_file_path\n";
+			copy($file, $index_file_path) or die "legit.pl: error: failed to copy $file into $index_file_path\n";
 		}
 	}
 }
@@ -128,12 +128,12 @@ sub checkIfTwoFolderAreSame{
 # scan through that folder while adding everythng in that folder into index's content
 if ($ARGV[0] eq "add") {
 	if (!-e $init_directory) {
-		print "$0: error: no $init_directory directory containing legit repository exists\n";
+		print "legit.pl: error: no $init_directory directory containing legit repository exists\n";
 		exit 1;
 	} else {
 		shift @ARGV; # remove add from input
 		if (!@ARGV) {
-			print "$0: error: internal error Nothing specified, nothing added.\n";
+			print "legit.pl: error: internal error Nothing specified, nothing added.\n";
 			exit 1;
 		}
 
@@ -150,14 +150,14 @@ if ($ARGV[0] eq "add") {
 if ($ARGV[0] eq "commit") {
 	shift @ARGV;
 	if (!@ARGV) {
-		print "usage: $0 commit [-a] -m commit-message\n";
+		print "usage: legit.pl commit [-a] -m commit-message\n";
 		exit 1;
 	}
 	my $command = shift @ARGV;
 	if ($command eq "-m") {
 		my $message = shift @ARGV;
 		if (@ARGV or !defined $message) {
-			print "usage: $0 commit [-a] -m commit-message\n";
+			print "usage: legit.pl commit [-a] -m commit-message\n";
 			exit 1;
 		}
 		my $current_commit_number = getCommitNumber();
@@ -173,13 +173,13 @@ if ($ARGV[0] eq "commit") {
 		if ($command eq "-a" ) {
 			$command2 = shift @ARGV; 
 			if ($command2 ne "-m") {
-				print "usage: $0 commit [-a] -m commit-message\n";
+				print "usage: legit.pl commit [-a] -m commit-message\n";
 				exit 1;
 			}
 		}
 		$message = shift @ARGV;
 		if (@ARGV or !defined $message) {
-			print "usage: $0 commit [-a] -m commit-message\n";
+			print "usage: legit.pl commit [-a] -m commit-message\n";
 			exit 1;
 		}
 		# get all the files in the current index and update them
@@ -228,7 +228,7 @@ if ($ARGV[0] eq "commit") {
 # log command
 if ($ARGV[0] eq "log") {
 	if (-z $log_file) {
-		print "$0: error: your repository does not have any commits yet\n";
+		print "legit.pl: error: your repository does not have any commits yet\n";
 		exit 1;
 	}
 	my $command = shift @ARGV;
@@ -237,7 +237,7 @@ if ($ARGV[0] eq "log") {
 		exit 1;
 	}
 
-	open $LOGREAD, '<', $log_file or die "$0: error: failed to open $log_file\n";
+	open $LOGREAD, '<', $log_file or die "legit.pl: error: failed to open $log_file\n";
 	@lines = reverse <$LOGREAD>;
 	foreach $line (@lines) {
 		print $line;
@@ -261,7 +261,7 @@ if ($ARGV[0] eq "show") {
 	}
 	@input = split /:/, $commit_filename;
 	if (@input > 2){
-		print "usage: $0 <commit>:<filename>\n";
+		print "usage: legit.pl <commit>:<filename>\n";
 		exit 1;
 	}
 	$commit_number = shift @input;
@@ -270,10 +270,10 @@ if ($ARGV[0] eq "show") {
 	if ($commit_number eq ''){
 		$retrieved_file = "$index_folder/$file";
 		if (!-e $retrieved_file) {
-			print "$0: error: $file not found in index\n";
+			print "legit.pl: error: $file not found in index\n";
 			exit 1;
 		}
-		open my $OUT, '<', $retrieved_file or die "$0: error: failed to open $retrieved_file\n";
+		open my $OUT, '<', $retrieved_file or die "legit.pl: error: failed to open $retrieved_file\n";
 		while ($line = <$OUT>) {
 			print $line;
 		}
@@ -282,21 +282,21 @@ if ($ARGV[0] eq "show") {
 		$retrieved_file_directory = "$commits_directory/$commit_number";
 		# if the commit number doesn't exist
 		if (!-e $retrieved_file_directory) {
-			print "$0: error: invalid commit $commit_number\n";
+			print "legit.pl: error: invalid commit $commit_number\n";
 			exit 1;
 		}
 		$retrieved_file = "$retrieved_file_directory/$file";
 		if (!-e $retrieved_file) {
-			print "$0: error: $file not found in commit $commit_number\n";
+			print "legit.pl: error: $file not found in commit $commit_number\n";
 			exit 1;
 		}
-		open my $OUT, '<', $retrieved_file or die "$0: error: failed to open $retrieved_file\n";
+		open my $OUT, '<', $retrieved_file or die "legit.pl: error: failed to open $retrieved_file\n";
 		while ($line = <$OUT>) {
 			print $line;
 		}
 		exit 0;
 	} else {
-		print "$0: error: invalid commit $commit_number\n";
+		print "legit.pl: error: invalid commit $commit_number\n";
 		exit 1;
 	}
 }
