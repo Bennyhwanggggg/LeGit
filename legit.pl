@@ -16,17 +16,17 @@ $index_folder = "$init_directory/index_files";
 
 if (@ARGV == 1 and $ARGV[0] eq "init") {
 	if (!-e $init_directory) {
-		mkdir $init_directory or die "$0: error: Failed to create $init_directory - $!\n";
-		mkdir $commits_directory or die "$0: error: Failed to create $commits_directory - $!\n";
-		mkdir $index_folder or die "$0L error: failed to create $index_folder = $!\n";
-		open my $INDEX_INIT, '>', $index_file or die "$0: error: Failed to initalize $index_file\n";
+		mkdir $init_directory or die "legit.pl: error: Failed to create $init_directory - $!\n";
+		mkdir $commits_directory or die "legit.pl: error: Failed to create $commits_directory - $!\n";
+		mkdir $index_folder or die "legit.pl: error: failed to create $index_folder = $!\n";
+		open my $INDEX_INIT, '>', $index_file or die "legit.pl: error: Failed to initalize $index_file\n";
 		close $INDEX_INIT;
-		open my $LOG_INIT, '>', $log_file or die "$0: error: Failed to initalize $log_file\n";
+		open my $LOG_INIT, '>', $log_file or die "legit.pl: error: Failed to initalize $log_file\n";
 		close $LOG_INIT;
 		print "Initialized empty legit repository in $init_directory\n";
 		exit 0;
 	} else {
-		print "$0: error: $init_directory already exists\n";
+		print "legit.pl: error: $init_directory already exists\n";
 		exit 1;
 	}
 }
@@ -103,6 +103,8 @@ sub updateIndex {
 sub updateIndexFolder {
 	my (@files) = @_;
 	foreach $file (@files) {
+		my $file = basename($file, '*');
+		print("$file updated\n");
 		my $index_file_path = "$index_folder/$file";
 		if (!-e $file && -e $index_file_path) { # if file was removed
 			unlink $index_file_path;
@@ -186,27 +188,31 @@ if ($ARGV[0] eq "commit") {
 			print "nothing to commit\n";
 			exit 0;
 		}
+
+		# update everything in index with whati
+
 		# just check if it is in index_file_path and rewrite index at the end by scanning through the index_file_path
-		$all_same = 1;
-		foreach $file_in_current_index (glob($index_folder . "/*")) {
-			$file_name = basename($file_in_current_index, "*");
-			if (!-e $file_name){
-				$all_same = 0;
-				unlink $file_in_current_index;
-				next;
-			}
-			if (compare($file_name, $file_in_current_index) != 0){
-				$all_same = 0;
-			}
-			copy($file_name, $file_in_current_index) or die "$0: error: failed to copy $file_name into $file_in_current_index\n"; 
-			# if a file is deleted, it should be deleted from index as well 
-		}
-		if ($all_same == 1){
-			print "nothing to commit\n";
-			exit 0;
-		}
+		# $all_same = 1;
+		# foreach $file_in_current_index (glob($index_folder . "/*")) {
+		# 	$file_name = basename($file_in_current_index, "*");
+		# 	if (!-e $file_name){
+		# 		$all_same = 0;
+		# 		unlink $file_in_current_index;
+		# 		next;
+		# 	}
+		# 	if (compare($file_name, $file_in_current_index) != 0){
+		# 		$all_same = 0;
+		# 	}
+		# 	copy($file_name, $file_in_current_index) or die "$0: error: failed to copy $file_name into $file_in_current_index\n"; 
+		# 	# if a file is deleted, it should be deleted from index as well 
+		# }
+		# if ($all_same == 1 and ! -z){
+		# 	print "nothing to commit\n";
+		# 	exit 0;
+		# }
 
 		my @to_be_indexed_files = glob($index_folder . '/*' );
+		updateIndexFolder(@to_be_indexed_files);
 		updateIndex(@to_be_indexed_file);
 		my $current_commit_number = getCommitNumber();
 		if (checkIfIndexSameAsRepo($current_commit_number) == 1){
