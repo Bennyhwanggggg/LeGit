@@ -9,7 +9,6 @@ if (!@ARGV) {
 	print "Usage: $0 <comand>\n";
 }
 
-# $commits_master_directory = "$init_directory/commits";
 # $index_master_file = "$init_directory/index";
 
 $init_directory = ".legit";
@@ -20,6 +19,7 @@ $index_folder = "$init_directory/index_files";
 $branch_folder = "$init_directory/branches";
 $branch_track = "$init_directory/currentBranch";
 
+$commits_master_directory = "$init_directory/commits";
 $index_master_folder = "$init_directory/index_files";
 # $log_master_file = "$init_directory/log";
 
@@ -43,20 +43,17 @@ if (@ARGV == 1 and $ARGV[0] eq "init") {
 	}
 }
 
-if (-z $branch_track) {
+if (! -z $branch_track) {
 	open my $BRANCHGET, '<', $branch_track or die "legit.pl: error: failed to read $branch_track\n";
-	$line = 0;
-	while (my $CURR = <$BRANCHGET>) {
-		$CURRENT_BRANCH = $CURR;
-		$line++;
-	}
+	$CURRENT_BRANCH = <$BRANCHGET>;
 	close $BRANCHGET;
-	if ($line > 0) {
-		$commits_directory = "$init_directory/$CURRENT_BRANCH/commits";
-		$index_file = "$init_directory/$CURRENT_BRANCH/index";
-		$log_file = "$init_directory/$CURRENT_BRANCH/log";
-		$index_folder = "$init_directory/$CURRENT_BRANCH/index_files";
-	}
+	print "$CURRENT_BRANCH\n";
+	$commits_directory = "$branch_folder/$CURRENT_BRANCH/commits";
+	$index_file = "$branch_folder/$CURRENT_BRANCH/index";
+	$log_file = "$branch_folder/$CURRENT_BRANCH/log";
+	$index_folder = "$branch_folder/$CURRENT_BRANCH/index_files";
+} else {
+	print "On master right now\n";
 }
 
 # get the last commit number, -1 if no commit made
@@ -148,8 +145,12 @@ sub updateIndexFolder {
 
 sub copyAllFiles {
 	my ($source_folder, $dest_folder) = @_;
-	mkdir $dest_folder;
+	mkdir $dest_folder if !-e $dest_folder;
 	for $file (glob($source_folder . "/*")){
+		if (-d $file){
+			# return copyAllFiles($file, $dest_folder);
+			next;
+		}
 		my $file_name = basename($file);
 		my $dest_file = "$dest_folder/$file_name";
 		copy($file, $dest_file);
@@ -552,9 +553,11 @@ if ($ARGV[0] eq "branch") {
 		mkdir $new_branch or die "legit.pl: error: faile to create $new_branch\n";
 		my $new_branch_index_folder = "$new_branch/index_files";
 		my $new_branch_commit_folder = "$new_branch/commits";
+		mkdir $new_branch_commit_folder if ! -e $new_branch_commit_folder;
 		copy($index_file, "$new_branch/index");
 		copy($log_file, "$new_branch/log");
 		copyAllFiles($index_folder, $new_branch_index_folder);
+		# copy commit history
 		for $folder (glob($commits_directory . "/*")) {
 			my $folder_name = $folder;
 			$folder_name =~ s/.*\///;
@@ -566,7 +569,7 @@ if ($ARGV[0] eq "branch") {
 }
 
 if ($ARGV[0] eq "checkout") {
-	if (!-e "$commits_directory/0") {
+	if (!-e "$commits_master_directory/0") {
 		print "legit.pl: error: your repository does not have any commits yet\n";
 		exit 1;
 	}
@@ -587,9 +590,20 @@ if ($ARGV[0] eq "checkout") {
 		print "Already on '$target_branch'\n";
 		exit 1;
 	}
+
+	# if master, don't use branch folder
+	if ($target_branch eq "master") {
+		# store away the current branch. check if what is commited in current branch's latest commit is same as index
+	}
+
+
+
+
 	open $BRANCHUPDATE, '>', $branch_track;
 	print $BRANCHUPDATE "$target_branch" if $target_branch ne "master";
 	close $BRANCHUPDATE;
+
+	# only put files in master folder if checking out from master
 	print "Switched to branch '$target_branch'\n";
 	exit 0;
 }
