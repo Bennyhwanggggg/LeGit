@@ -44,6 +44,10 @@ if (@ARGV == 1 and $ARGV[0] eq "init") {
 }
 
 if (! -z $branch_track) {
+	if (!-e $init_directory) {
+		print "legit.pl: error: no $init_directory directory containing legit repository exists\n";
+		exit 1;
+	}
 	open my $BRANCHGET, '<', $branch_track or die "legit.pl: error: failed to read $branch_track\n";
 	$CURRENT_BRANCH = <$BRANCHGET>;
 	close $BRANCHGET;
