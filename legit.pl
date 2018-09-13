@@ -60,6 +60,9 @@ if (-z $branch_track) {
 sub getCommitNumber{
 	my $current_commit_number = -1;
 	my @list_of_commit_dirs = glob($commits_directory . '/*');
+	if (@list_of_commit_dirs == 0){
+		return -1;
+	}
 	@list_of_commit_dirs = sort @list_of_commit_dirs;
 	return $list_of_commit_dirs[$#list_of_commit_dirs];
 }
