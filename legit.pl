@@ -190,28 +190,6 @@ if ($ARGV[0] eq "commit") {
 			exit 0;
 		}
 
-		# update everything in index with whati
-
-		# just check if it is in index_file_path and rewrite index at the end by scanning through the index_file_path
-		# $all_same = 1;
-		# foreach $file_in_current_index (glob($index_folder . "/*")) {
-		# 	$file_name = basename($file_in_current_index, "*");
-		# 	if (!-e $file_name){
-		# 		$all_same = 0;
-		# 		unlink $file_in_current_index;
-		# 		next;
-		# 	}
-		# 	if (compare($file_name, $file_in_current_index) != 0){
-		# 		$all_same = 0;
-		# 	}
-		# 	copy($file_name, $file_in_current_index) or die "$0: error: failed to copy $file_name into $file_in_current_index\n"; 
-		# 	# if a file is deleted, it should be deleted from index as well 
-		# }
-		# if ($all_same == 1 and ! -z){
-		# 	print "nothing to commit\n";
-		# 	exit 0;
-		# }
-
 		my @to_be_indexed_files = glob($index_folder . '/*' );
 		updateIndexFolder(@to_be_indexed_files);
 		updateIndex(@to_be_indexed_files);
@@ -398,38 +376,69 @@ if ($ARGV[0] eq "rm") {
 	}
 }
 
-# # status
-# if ($ARGV[0] eq "status") {
-# 	my $current_commit_number = -1;
-# 	my @list_of_commit_dirs = glob($commits_directory . '/*');
-# 	if (@list_of_commit_dirs) {
-# 		$current_commit_number = @list_of_commit_dirs - 1;
-# 	} else {
-# 		print "$0: error: your repository does not have any commits yet\n";
-# 		exit 1;
-# 	}
-# 	print "$current_commit_number\n";
-# 	# compare the files in current directory with the one in commit
-# 	# a - file modified and changes in index.  --- current, index, repo are different. File was commited, then changed which was added then changed again wich was not added
-# 	# b - file modified												 --- index and repo are different. File was commited, then changed, which was added, but not commited
-# 	# c - changes in index 										--- file was commited, then modified but modification is not added
-# 	# d - file deleted												--- file was removed with rm, changes not added to index or commited
-# 	# e - deleted														--- file remove using legit rm, removed from index and current directory (does not rm from repo yet? so use this to show up on status)
-# 	# f - same as repo. 									-- commited and no changes made. repo, index, current are same
-# 	# g - added to index.  										--- first time added to index? not present in repo
-# 	# h - untracked
-
-# 	# rm => cannot work when repo is different from what is in current (file was commited before then modified. new modification not added) (err: in repository is different to working file)
-# 	# => cannot work when index and repo are different (err: has changes staged in the index)
-# 	foreach $file (glob("*")){
-# 		$path_in_repo = "$commits_directory/$current_commit_number/$file";
-# 		if (-e $path_in_repo) {
-# 			if (compare($file, $path_in_repo) == 0){
-# 				$status{$file} = 'same as repo';
-# 			}
-# 		} else {
-# 			$status{$file} = 'untracked';
-# 		}
-# 	}
-
-# }
+# legit rm = not in index or current ==> deleted
+# rm = not in current but in index ==> file deleted
+# if not in all three ==> gone
+# if in current and not index ==> untracked
+# in index but not in commit ==> added to index
+if ($ARGV[0] eq "status") {
+	if (!-e "$commits_directory/0") {
+		print "legit.pl: error: your repository does not have any commits yet\n";
+		exit 1;
+	}
+	my $current_commit_number = getCommitNumber();
+	# get all the files in everywhere
+	my @current_files = glob("*");
+	my @index_files = glob($index_folder . "/*");
+	my @commited_files = glob("$commits_directory/$current_commit_number" . "/*");
+	for $file (@current_files) {
+		if (-d $file ){
+			next;
+		}
+		$all_files{basename($file)}++;
+	}
+	for $file (@index_files) {
+		if (-d $file ){
+			next;
+		}
+		$all_files{basename($file)}++;
+	}
+	for $file (@commited_files) {
+		if (-d $file ){
+			next;
+		}
+		$all_files{basename($file)}++;
+	}
+	for $file (keys %all_files) {
+		$committed_file = "$commits_directory/$current_commit_number/$file";
+		$indexed_file = "$index_folder/$file";
+		# if exist in all three, check if all same or which ones are different
+		if (-e $file and -e $committed_file and -e $indexed_file) {
+			# if all three are same then same as repo
+			if (compare($file, $committed_file) == 0 and compare($file, $indexed_file) == 0) {
+				$all_files{$file} = "same as repo";
+			# modified and changed in index if current != index and index != commited
+			} elsif (compare($file, $indexed_file) != 0 and compare($indexed_file, $committed_file)) {
+				$all_files{$file} = "file modified and changes in index";
+			} elsif (compare($committed_file, $indexed_file) != 0) {
+				$all_files{$file} = "file modified";
+			} elsif (compare($file, $indexed_file) != 0){
+				$all_files{$file} = "changes in index";
+			}
+		# handle delete cases, if only not in current => file deleted, not in both index and current => deleted
+		} elsif (! -e $file and ! -e $indexed_file and -e $committed_file) {
+			$all_files{$file} = "deleted";
+		} elsif (! -e $file and -e $indexed_file) {
+			$all_files{$file} = "file deleted";
+		} elsif (-e $file and ! -e $indexed_file) {
+			$all_files{$file} = "untracked";
+		} elsif (-e $indexed_file and !-e $committed_file) {
+			# added to index only if it doesn;t exist in commit
+			$all_files{$file} = "added to index";
+		}
+	}
+	foreach my $file (sort keys %all_files){
+		print "$file - $all_files{$file}\n";
+	}
+	exit 0;
+}
