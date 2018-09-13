@@ -583,7 +583,7 @@ if ($ARGV[0] eq "checkout") {
 	}
 	$target_branch = $ARGV[0];
 	# Update current branch marker
-	open $BRANCHCHECK, '<', $branch_track;
+	open $BRANCHCHECK, '<', $branch_track or die "failed to read to $branch_track - $!\n";
 	my $current_branch = <$BRANCHCHECK>;
 	close $BRANCHCHECK;
 	if (! defined($current_branch)) {
@@ -602,7 +602,7 @@ if ($ARGV[0] eq "checkout") {
 
 
 
-	open $BRANCHUPDATE, '>', $branch_track;
+	open $BRANCHUPDATE, '>', $branch_track or die "failed to write to $branch_track - $!\n";
 	print $BRANCHUPDATE "$target_branch" if $target_branch ne "master";
 	close $BRANCHUPDATE;
 
