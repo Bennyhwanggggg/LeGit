@@ -3,6 +3,7 @@
 use File::Compare;
 use File::Copy;
 use File::Basename;
+use File::Path;
 
 if (!@ARGV) {
 	print "Usage: $0 <comand>\n";
@@ -11,27 +12,29 @@ if (!@ARGV) {
 # $commits_master_directory = "$init_directory/commits";
 # $index_master_file = "$init_directory/index";
 # $log_master_file = "$init_directory/log";
-# $index_folder = "$init_directory/index_files";
 
 $init_directory = ".legit";
 $commits_directory = "$init_directory/commits";
 $index_file = "$init_directory/index";
 $log_file = "$init_directory/log";
 $index_folder = "$init_directory/index_files";
-# $branch_folder = "$init_directory/branches";
-# $branch_track = "$init_directory/currentBranch";
+$branch_folder = "$init_directory/branches";
+$branch_track = "$init_directory/currentBranch";
+
+$index_master_folder = "$init_directory/index_files";
 
 if (@ARGV == 1 and $ARGV[0] eq "init") {
 	if (!-e $init_directory) {
 		mkdir $init_directory or die "legit.pl: error: Failed to create $init_directory - $!\n";
 		mkdir $commits_directory or die "legit.pl: error: Failed to create $commits_directory - $!\n";
 		mkdir $index_folder or die "legit.pl: error: failed to create $index_folder = $!\n";
+		mkdir $branch_folder or die "legit.pl: error: failed to create $branch_folder\n";
 		open my $INDEX_INIT, '>', $index_file or die "legit.pl: error: Failed to initalize $index_file\n";
 		close $INDEX_INIT;
 		open my $LOG_INIT, '>', $log_file or die "legit.pl: error: Failed to initalize $log_file\n";
 		close $LOG_INIT;
-		# open my $BRANCH_INIT, '>', $branch_track or die "legit.pl: error: Failed to initalize $branch_track\n";
-		# close $BRANCH_INIT;
+		open my $BRANCH_INIT, '>', $branch_track or die "legit.pl: error: Failed to initalize $branch_track\n";
+		close $BRANCH_INIT;
 		print "Initialized empty legit repository in $init_directory\n";
 		exit 0;
 	} else {
@@ -40,21 +43,21 @@ if (@ARGV == 1 and $ARGV[0] eq "init") {
 	}
 }
 
-# if (-z $branch_track) {
-# 	open my $BRANCHGET, '<', $branch_track or die "legit.pl: error: failed to read $branch_track\n";
-# 	$line = 0;
-# 	while (my $CURR = <$BRANCHGET>) {
-# 		$CURRENT_BRANCH = $CURR;
-# 		$line++;
-# 	}
-# 	close $BRANCHGET;
-# 	if ($line > 0) {
-# 		$commits_directory = "$init_directory/$CURRENT_BRANCH/commits";
-# 		$index_file = "$init_directory/$CURRENT_BRANCH/index";
-# 		$log_file = "$init_directory/$CURRENT_BRANCH/log";
-# 		$index_folder = "$init_directory/$CURRENT_BRANCH/index_files";
-# 	}
-# }
+if (-z $branch_track) {
+	open my $BRANCHGET, '<', $branch_track or die "legit.pl: error: failed to read $branch_track\n";
+	$line = 0;
+	while (my $CURR = <$BRANCHGET>) {
+		$CURRENT_BRANCH = $CURR;
+		$line++;
+	}
+	close $BRANCHGET;
+	if ($line > 0) {
+		$commits_directory = "$init_directory/$CURRENT_BRANCH/commits";
+		$index_file = "$init_directory/$CURRENT_BRANCH/index";
+		$log_file = "$init_directory/$CURRENT_BRANCH/log";
+		$index_folder = "$init_directory/$CURRENT_BRANCH/index_files";
+	}
+}
 
 # get the last commit number, -1 if no commit made
 sub getCommitNumber{
@@ -141,6 +144,35 @@ sub updateIndexFolder {
 			copy($file, $index_file_path) or die "legit.pl: error: failed to copy '$file' into $index_file_path\n";
 		}
 	}
+}
+
+sub copyAllFiles {
+	my ($source_folder, $dest_folder) = @_;
+	mkdir $dest_folder;
+	for $file (glob($source_folder . "/*")){
+		my $file_name = basename($file);
+		my $dest_file = "$dest_folder/$file_name";
+		copy($file, $dest_file);
+	}
+}
+
+sub checkIfTwoFoldersAreTheSame {
+	my ($folder_1, $folder_2) = @_;
+	for $file (glob($folder_1 . '/*')) {
+		my $file_name = basename($file, "*");
+		my $check_file_path = "$folder_2/$file_name";
+		if ((!-e $check_file_path) or (compare($file, $check_file_path) != 0)) {
+			return 0;
+		} 
+	}
+	for $file (glob($folder_2 . '/*')) {
+		my $file_name = basename($file, "*");
+		my $check_file_path = "$folder_1/$file_name";
+		if ((!-e $check_file_path) or (compare($file, $check_file_path) != 0)) {
+			return 0;
+		} 
+	}
+	return 1;
 }
 
 # Add should check if the added file is the same as the one that is commited
@@ -465,35 +497,78 @@ if ($ARGV[0] eq "status") {
 	exit 0;
 }
 
-# if ($ARGV[0] eq "branch") {
-# 	if (!-e "$commits_directory/0") {
-# 		print "legit.pl: error: your repository does not have any commits yet\n";
-# 		exit 1;
-# 	}
-# 	my $command = shift @ARGV;
-# 	if (@ARGV == 0) {
-# 		my @branches = glob("$branch_folder" . "/*");
-# 		for $branch (@branches) {
-# 			if (-d $branch) {
-# 				print "$branch\n";
-# 			}
-# 		}
-# 		print "master\n";
-# 		exit 0;
-# 	} else {
-# 		$new_branch_name = shift @ARGV;
-# 		if (@ARGV) {
-# 			print "usage: legit.pl [-d] <branch>\n";
-# 			exit 1;
-# 		}
-# 		$new_branch = "$branch_folder/$new_branch_name";
-# 		if (-e $new_branch or $new_branch_name eq "master") {
-# 			print "legit.pl: error: branch '$new_branch_name' already exists\n";
-# 			exit 1;
-# 		}
-# 		mkdir $new_branch or die "legit.pl: error: faile to create $new_branch\n";
-# 		copy($index_file, "$new_branch/index");
-# 		copy($index_folder, "$new_branch/index_files");
-# 		copy($commits_directory, "$new_branch/commits");
-# 	}
-# }
+if ($ARGV[0] eq "branch") {
+	if (!-e "$commits_directory/0") {
+		print "legit.pl: error: your repository does not have any commits yet\n";
+		exit 1;
+	}
+	my $command = shift @ARGV;
+	if (@ARGV == 0) {
+		my @branches = glob("$branch_folder" . "/*");
+		for $branch (@branches) {
+			if (-d $branch) {
+				$branch = basename($branch);
+				print "$branch\n";
+			}
+		}
+		print "master\n";
+		exit 0;
+	} elsif ($ARGV[0] eq "-d") {
+		shift @ARGV;
+		if (@ARGV != 1) {
+			print "usage: legit.pl [-d] <branch>\n";
+			exit 1;
+		}
+		$branch_to_delete = shift @ARGV;
+		$branch_folder_to_del = "$branch_folder/$branch_to_delete";
+		if (! -e "$branch_folder_to_del") {
+			print "legit.pl: error: branch '$branch_to_delete' does not exist\n";
+			exit 1;
+		}
+		# unmerged if repo to delete is different from master?
+		$branch_to_delete_index = "$branch_folder_to_del/index_files";
+		if (checkIfTwoFoldersAreTheSame($index_master_folder, $branch_to_delete_index) == 0) {
+			print "legit.pl: error: branch '$branch_to_delete' has unmerged changes\n";
+			exit 1;
+		}
+		rmtree $branch_folder_to_del;
+		exit 0;
+	} else {
+		my $new_branch_name = shift @ARGV;
+		if (@ARGV) {
+			print "usage: legit.pl [-d] <branch>\n";
+			exit 1;
+		}
+		$new_branch = "$branch_folder/$new_branch_name";
+		if (-e $new_branch or $new_branch_name eq "master") {
+			print "legit.pl: error: branch '$new_branch_name' already exists\n";
+			exit 1;
+		}
+		mkdir $new_branch or die "legit.pl: error: faile to create $new_branch\n";
+		my $new_branch_index_folder = "$new_branch/index_files";
+		my $new_branch_commit_folder = "$new_branch/commits";
+		copy($index_file, "$new_branch/index");
+		copyAllFiles($index_folder, $new_branch_index_folder);
+		for $folder (glob($commits_directory . "/*")) {
+			my $folder_name = $folder;
+			$folder_name =~ s/.*\///;
+			copyAllFiles($folder, "$new_branch_commit_folder/$folder_name");
+		}
+		exit 0;
+	}
+	exit 0;
+}
+
+if ($ARGV[0] eq "checkout") {
+	if (!-e "$commits_directory/0") {
+		print "legit.pl: error: your repository does not have any commits yet\n";
+		exit 1;
+	}
+	shift @ARGV
+	if (@ARGV != 1) {
+		print "usage: legit.pl checkout <branch-name>\n";
+		exit 1;
+	}
+	print "Switched to branch $ARGV[0]\n";
+	exit 0;
+}
