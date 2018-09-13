@@ -64,7 +64,7 @@ sub getCommitNumber{
 		return -1;
 	}
 	@list_of_commit_dirs = sort @list_of_commit_dirs;
-	return $list_of_commit_dirs[$#list_of_commit_dirs];
+	return basename($list_of_commit_dirs[$#list_of_commit_dirs]);
 }
 
 # check if index is same as repo
