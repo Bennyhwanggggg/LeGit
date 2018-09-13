@@ -317,14 +317,20 @@ if ($ARGV[0] eq "rm") {
 		print "legit.pl: error: your repository does not have any commits yet\n";
 		exit 1;
 	}
+	my $current_commit_number = getCommitNumber();
 	my $command = shift @ARGV;
 	if ($ARGV[0] eq "--cached") {
 		# only remove from index
 		shift @ARGV;
 		for $file (@ARGV) { # reference implementation checks everything first before deleting
 			my $index_file_path = "$index_folder/$file"; 
+			my $commited_file = "$commits_directory/$current_commit_number/$file";
 			if (!-e $index_file_path){
 				print "legit.pl: error: '$file' is not in the legit repository\n";
+				exit 1;
+			}
+			if (-e $commited_file and compare($commited_file, $index_file_path) != 0 and compare($index_file_path, $file) != 0) {
+				print "legit.pl: error: '$file' in index is different to both working file and repository\n";
 				exit 1;
 			}
 		}
@@ -355,7 +361,6 @@ if ($ARGV[0] eq "rm") {
 		updateIndex(@to_be_indexed_files);
 		exit 0;
 	} else {
-		my $current_commit_number = getCommitNumber();
 		# if not in repo or index = not in legit repo
 		# if in index but not repo or different from repo (file was modifed and added) =  has changes staged in the index
 		# if file is differnet from index (and repo) differnt to working file (changes made in directory  but no add)
