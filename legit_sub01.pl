@@ -18,7 +18,7 @@ $commits_directory = "$init_directory/commits";
 $index_file = "$init_directory/index";
 $log_file = "$init_directory/log";
 $index_folder = "$init_directory/index_files";
-# $branch_folder = "$init_directory/branches";
+$branch_folder = "$init_directory/branches";
 # $branch_track = "$init_directory/currentBranch";
 
 if (@ARGV == 1 and $ARGV[0] eq "init") {
