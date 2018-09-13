@@ -532,6 +532,7 @@ if ($ARGV[0] eq "branch") {
 			exit 1;
 		}
 		rmtree $branch_folder_to_del;
+		print "Deleted branch '$branch_to_delete'\n";
 		exit 0;
 	} else {
 		my $new_branch_name = shift @ARGV;
