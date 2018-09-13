@@ -288,7 +288,7 @@ if ($ARGV[0] eq "show") {
 		$retrieved_file_directory = "$commits_directory/$commit_number";
 		# if the commit number doesn't exist
 		if (!-e $retrieved_file_directory) {
-			print "legit.pl: error: invalid commit $commit_number\n";
+			print "legit.pl: error: unknown commit $commit_number\n";
 			exit 1;
 		}
 		$retrieved_file = "$retrieved_file_directory/$file";
