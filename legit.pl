@@ -11,7 +11,6 @@ if (!@ARGV) {
 
 # $commits_master_directory = "$init_directory/commits";
 # $index_master_file = "$init_directory/index";
-# $log_master_file = "$init_directory/log";
 
 $init_directory = ".legit";
 $commits_directory = "$init_directory/commits";
@@ -22,6 +21,7 @@ $branch_folder = "$init_directory/branches";
 $branch_track = "$init_directory/currentBranch";
 
 $index_master_folder = "$init_directory/index_files";
+# $log_master_file = "$init_directory/log";
 
 if (@ARGV == 1 and $ARGV[0] eq "init") {
 	if (!-e $init_directory) {
@@ -548,6 +548,7 @@ if ($ARGV[0] eq "branch") {
 		my $new_branch_index_folder = "$new_branch/index_files";
 		my $new_branch_commit_folder = "$new_branch/commits";
 		copy($index_file, "$new_branch/index");
+		copy($log_file, "$new_branch/log");
 		copyAllFiles($index_folder, $new_branch_index_folder);
 		for $folder (glob($commits_directory . "/*")) {
 			my $folder_name = $folder;
@@ -569,6 +570,21 @@ if ($ARGV[0] eq "checkout") {
 		print "usage: legit.pl checkout <branch-name>\n";
 		exit 1;
 	}
-	print "Switched to branch $ARGV[0]\n";
+	$target_branch = $ARGV[0];
+	# Update current branch marker
+	open $BRANCHCHECK, '<', $branch_track;
+	my $current_branch = <$BRANCHCHECK>;
+	close $BRANCHCHECK;
+	if (! defined($current_branch)) {
+		$current_branch = "master";
+	}
+	if ($current_branch eq $target_branch) {
+		print "Already on '$target_branch'\n";
+		exit 1;
+	}
+	open $BRANCHUPDATE, '>', $branch_track;
+	print $BRANCHUPDATE "$target_branch" if $target_branch ne "master";
+	close $BRANCHUPDATE;
+	print "Switched to branch '$target_branch'\n";
 	exit 0;
 }
