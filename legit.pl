@@ -40,7 +40,7 @@ if (@ARGV == 1 and $ARGV[0] eq "init") {
 	}
 }
 
-if (! -z $branch_track) {
+if (-z $branch_track) {
 	open my $BRANCHGET, '<', $branch_track or die "legit.pl: error: failed to read $branch_track\n";
 	while (my $CURR = <$BRANCHGET>) {
 		my $CURRENT_BRANCH = $CURR;
