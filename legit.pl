@@ -42,14 +42,18 @@ if (@ARGV == 1 and $ARGV[0] eq "init") {
 
 if (-z $branch_track) {
 	open my $BRANCHGET, '<', $branch_track or die "legit.pl: error: failed to read $branch_track\n";
+	$line = 0;
 	while (my $CURR = <$BRANCHGET>) {
-		my $CURRENT_BRANCH = $CURR;
+		$CURRENT_BRANCH = $CURR;
+		$line++;
 	}
 	close $BRANCHGET;
-	$commits_directory = "$init_directory/$CURRENT_BRANCH/commits";
-	$index_file = "$init_directory/$CURRENT_BRANCH/index";
-	$log_file = "$init_directory/$CURRENT_BRANCH/log";
-	$index_folder = "$init_directory/$CURRENT_BRANCH/index_files";
+	if ($line > 0) {
+		$commits_directory = "$init_directory/$CURRENT_BRANCH/commits";
+		$index_file = "$init_directory/$CURRENT_BRANCH/index";
+		$log_file = "$init_directory/$CURRENT_BRANCH/log";
+		$index_folder = "$init_directory/$CURRENT_BRANCH/index_files";
+	}
 }
 
 # get the last commit number, -1 if no commit made
