@@ -52,8 +52,6 @@ if (! -z $branch_track) {
 	$index_file = "$branch_folder/$CURRENT_BRANCH/index";
 	$log_file = "$branch_folder/$CURRENT_BRANCH/log";
 	$index_folder = "$branch_folder/$CURRENT_BRANCH/index_files";
-} else {
-	print "On master right now\n";
 }
 
 # get the last commit number, -1 if no commit made
@@ -593,7 +591,7 @@ if ($ARGV[0] eq "checkout") {
 
 	# if master, don't use branch folder
 	if ($target_branch eq "master") {
-		# store away the current branch. check if what is commited in current branch's latest commit is same as index
+		# if checking out to master branch, move
 	}
 
 
