@@ -367,6 +367,10 @@ if ($ARGV[0] eq "rm") {
 				exit 1;
 			}
 			if (-e $index_file_path) { 
+				if (compare($file, $index_file_path) != 0 and compare($index_file_path, $commited_file) != 0){
+					print "legit.pl: error: '$file' in index is different to both working file and repository\n";
+					exit 1;
+				}
 				if (compare($file, $index_file_path) != 0) {
 					print "legit.pl: error: '$file' in repository is different to working file\n";
 					exit 1;
