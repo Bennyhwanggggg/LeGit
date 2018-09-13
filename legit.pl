@@ -520,6 +520,9 @@ if ($ARGV[0] eq "branch") {
 			exit 1;
 		}
 		$branch_to_delete = shift @ARGV;
+		if ($branch_to_delete eq "master") {
+			print "legit.pl: error: can not delete branch 'master'\n";
+		}
 		$branch_folder_to_del = "$branch_folder/$branch_to_delete";
 		if (! -e "$branch_folder_to_del") {
 			print "legit.pl: error: branch '$branch_to_delete' does not exist\n";
