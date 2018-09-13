@@ -19,7 +19,7 @@ $index_file = "$init_directory/index";
 $log_file = "$init_directory/log";
 $index_folder = "$init_directory/index_files";
 $branch_folder = "$init_directory/branches";
-$branch_track = "$init_directory/currentBranch";
+# $branch_track = "$init_directory/currentBranch";
 
 if (@ARGV == 1 and $ARGV[0] eq "init") {
 	if (!-e $init_directory) {
@@ -30,8 +30,8 @@ if (@ARGV == 1 and $ARGV[0] eq "init") {
 		close $INDEX_INIT;
 		open my $LOG_INIT, '>', $log_file or die "legit.pl: error: Failed to initalize $log_file\n";
 		close $LOG_INIT;
-		open my $BRANCH_INIT, '>', $branch_track or die "legit.pl: error: Failed to initalize $branch_track\n";
-		close $BRANCH_INIT;
+		# open my $BRANCH_INIT, '>', $branch_track or die "legit.pl: error: Failed to initalize $branch_track\n";
+		# close $BRANCH_INIT;
 		print "Initialized empty legit repository in $init_directory\n";
 		exit 0;
 	} else {
@@ -40,21 +40,21 @@ if (@ARGV == 1 and $ARGV[0] eq "init") {
 	}
 }
 
-if (-z $branch_track) {
-	open my $BRANCHGET, '<', $branch_track or die "legit.pl: error: failed to read $branch_track\n";
-	$line = 0;
-	while (my $CURR = <$BRANCHGET>) {
-		$CURRENT_BRANCH = $CURR;
-		$line++;
-	}
-	close $BRANCHGET;
-	if ($line > 0) {
-		$commits_directory = "$init_directory/$CURRENT_BRANCH/commits";
-		$index_file = "$init_directory/$CURRENT_BRANCH/index";
-		$log_file = "$init_directory/$CURRENT_BRANCH/log";
-		$index_folder = "$init_directory/$CURRENT_BRANCH/index_files";
-	}
-}
+# if (-z $branch_track) {
+# 	open my $BRANCHGET, '<', $branch_track or die "legit.pl: error: failed to read $branch_track\n";
+# 	$line = 0;
+# 	while (my $CURR = <$BRANCHGET>) {
+# 		$CURRENT_BRANCH = $CURR;
+# 		$line++;
+# 	}
+# 	close $BRANCHGET;
+# 	if ($line > 0) {
+# 		$commits_directory = "$init_directory/$CURRENT_BRANCH/commits";
+# 		$index_file = "$init_directory/$CURRENT_BRANCH/index";
+# 		$log_file = "$init_directory/$CURRENT_BRANCH/log";
+# 		$index_folder = "$init_directory/$CURRENT_BRANCH/index_files";
+# 	}
+# }
 
 # get the last commit number, -1 if no commit made
 sub getCommitNumber{
@@ -465,31 +465,35 @@ if ($ARGV[0] eq "status") {
 	exit 0;
 }
 
-if ($ARGV[0] eq "branch") {
-	my $command = shift @ARGV;
-	if (@ARGV == 0) {
-		my @branches = glob("$branch_folder" . "/*");
-		for $branch (@branches) {
-			if (-d $branch) {
-				print "$branch\n";
-			}
-		}
-		print "master\n";
-		exit 0;
-	} else {
-		$new_branch_name = shift @ARGV;
-		if (@ARGV) {
-			print "usage: legit.pl [-d] <branch>\n";
-			exit 1;
-		}
-		$new_branch = "$branch_folder/$new_branch_name";
-		if (-e $new_branch) {
-			print "legit.pl: error: branch '$new_branch_name' already exists\n";
-			exit 1;
-		}
-		mkdir $new_branch or die "legit.pl: error: faile to create $new_branch\n";
-		copy($index_file, "$new_branch/index");
-		copy($index_folder, "$new_branch/index_files");
-		copy($commits_directory, "$new_branch/commits");
-	}
-}
+# if ($ARGV[0] eq "branch") {
+# 	if (!-e "$commits_directory/0") {
+# 		print "legit.pl: error: your repository does not have any commits yet\n";
+# 		exit 1;
+# 	}
+# 	my $command = shift @ARGV;
+# 	if (@ARGV == 0) {
+# 		my @branches = glob("$branch_folder" . "/*");
+# 		for $branch (@branches) {
+# 			if (-d $branch) {
+# 				print "$branch\n";
+# 			}
+# 		}
+# 		print "master\n";
+# 		exit 0;
+# 	} else {
+# 		$new_branch_name = shift @ARGV;
+# 		if (@ARGV) {
+# 			print "usage: legit.pl [-d] <branch>\n";
+# 			exit 1;
+# 		}
+# 		$new_branch = "$branch_folder/$new_branch_name";
+# 		if (-e $new_branch or $new_branch_name eq "master") {
+# 			print "legit.pl: error: branch '$new_branch_name' already exists\n";
+# 			exit 1;
+# 		}
+# 		mkdir $new_branch or die "legit.pl: error: faile to create $new_branch\n";
+# 		copy($index_file, "$new_branch/index");
+# 		copy($index_folder, "$new_branch/index_files");
+# 		copy($commits_directory, "$new_branch/commits");
+# 	}
+# }
