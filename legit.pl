@@ -47,11 +47,12 @@ if (! -z $branch_track) {
 	open my $BRANCHGET, '<', $branch_track or die "legit.pl: error: failed to read $branch_track\n";
 	$CURRENT_BRANCH = <$BRANCHGET>;
 	close $BRANCHGET;
-	print "$CURRENT_BRANCH\n";
-	$commits_directory = "$branch_folder/$CURRENT_BRANCH/commits";
-	$index_file = "$branch_folder/$CURRENT_BRANCH/index";
-	$log_file = "$branch_folder/$CURRENT_BRANCH/log";
-	$index_folder = "$branch_folder/$CURRENT_BRANCH/index_files";
+	if ($CURRENT_BRANCH ne "master") {
+		$commits_directory = "$branch_folder/$CURRENT_BRANCH/commits";
+		$index_file = "$branch_folder/$CURRENT_BRANCH/index";
+		$log_file = "$branch_folder/$CURRENT_BRANCH/log";
+		$index_folder = "$branch_folder/$CURRENT_BRANCH/index_files";
+	}
 }
 
 # get the last commit number, -1 if no commit made
