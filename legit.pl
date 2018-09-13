@@ -564,7 +564,7 @@ if ($ARGV[0] eq "checkout") {
 		print "legit.pl: error: your repository does not have any commits yet\n";
 		exit 1;
 	}
-	shift @ARGV
+	shift @ARGV;
 	if (@ARGV != 1) {
 		print "usage: legit.pl checkout <branch-name>\n";
 		exit 1;
