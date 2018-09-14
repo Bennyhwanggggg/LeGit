@@ -39,7 +39,7 @@ if (@ARGV == 1 and $ARGV[0] eq "init") {
 		close $LOG_INIT;
 		open my $BRANCH_INIT, '>', $branch_track or die "legit.pl: error: Failed to initalize $branch_track\n";
 		close $BRANCH_INIT;
-		open my $COMMITNUM_INIT, '>', $branch_track or die "legit.pl: error: Failed to initalize $branch_track\n";
+		open my $COMMITNUM_INIT, '>', $commit_num or die "legit.pl: error: Failed to initalize $branch_track\n";
 		print $COMMITNUM_INIT "-1";
 		close $COMMITNUM_INIT;
 		print "Initialized empty legit repository in $init_directory\n";
