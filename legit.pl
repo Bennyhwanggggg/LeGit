@@ -191,14 +191,14 @@ sub copyAllFiles {
 	my ($source_folder, $dest_folder) = @_;
 	mkdir $dest_folder if !-e $dest_folder;
 	for $file (glob($source_folder . "/*")){
-		print "copying $file to $dest_folder\n";
+		# print "copying $file to $dest_folder\n";
 		if (-d $file){
 			# return copyAllFiles($file, $dest_folder);
 			next;
 		}
 		my $file_name = basename($file);
 		my $dest_file = "$dest_folder/$file_name";
-		print "copied from $source_folder to $dest_folder\n";
+		# print "copied from $source_folder to $dest_folder\n";
 		copy($file, $dest_file);
 	}
 }
