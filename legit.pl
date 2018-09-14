@@ -24,7 +24,7 @@ $branch_track = "$init_directory/currentBranch";
 $commit_num = "$init_directory/lastcommitnumber";
 
 $commits_master_directory = "$init_directory/commits";
-$index_master_folder = "$init_directory/index_files";
+# $index_master_folder = "$init_directory/index_files";
 # $log_master_file = "$init_directory/log";
 
 if (@ARGV == 1 and $ARGV[0] eq "init") {
