@@ -4,6 +4,9 @@ use File::Compare;
 use File::Copy;
 use File::Basename;
 use File::Path;
+use Cwd qw();
+
+my $PATH = Cwd::cwd();
 
 if (!@ARGV) {
 	print "Usage: $0 <comand>\n";
@@ -18,6 +21,7 @@ $log_file = "$init_directory/log";
 $index_folder = "$init_directory/index_files";
 $branch_folder = "$init_directory/branches";
 $branch_track = "$init_directory/currentBranch";
+$commit_num = "$init_directory/lastcommitnumber";
 
 $commits_master_directory = "$init_directory/commits";
 $index_master_folder = "$init_directory/index_files";
@@ -35,6 +39,9 @@ if (@ARGV == 1 and $ARGV[0] eq "init") {
 		close $LOG_INIT;
 		open my $BRANCH_INIT, '>', $branch_track or die "legit.pl: error: Failed to initalize $branch_track\n";
 		close $BRANCH_INIT;
+		open my $COMMITNUM_INIT, '>', $branch_track or die "legit.pl: error: Failed to initalize $branch_track\n";
+		print $COMMITNUM_INIT "-1";
+		close $COMMITNUM_INIT;
 		print "Initialized empty legit repository in $init_directory\n";
 		exit 0;
 	} else {
@@ -59,9 +66,26 @@ if (! -z $branch_track) {
 	}
 }
 
-# get the last commit number, -1 if no commit made
+sub updateCommitNum {
+	open my $IN, '<', $commit_num or die "legit.pl: error: failed to open $commit_num\n";
+	my $n = <$IN>;
+	close $IN;
+	$n++;
+	open my $OUT, '>', $commit_num or die "legit.pl: error: failed to open $commit_num\n";
+	print $OUT "$n";
+	close $OUT;
+}
+
+# for commit accross all repo
+sub getSysCommitNumber {
+	open my $IN, '<', $commit_num or die "legit.pl: error: failed to open $commit_num\n";
+	my $n = <$IN>;
+	close $IN;
+	return $n;
+}
+
+# get commit of current branch oo master
 sub getCommitNumber{
-	my $current_commit_number = -1;
 	my @list_of_commit_dirs = glob($commits_directory . '/*');
 	if (@list_of_commit_dirs == 0){
 		return -1;
@@ -69,6 +93,22 @@ sub getCommitNumber{
 	@list_of_commit_dirs = sort @list_of_commit_dirs;
 	return basename($list_of_commit_dirs[$#list_of_commit_dirs]);
 }
+
+# get commit number of a specified branch
+sub getbranchCommitNumber{
+	my ($branch) = @_;
+	my $branch_commit_folder = "$branch_folder/$branch/commits";
+	if ($branch eq "master") {
+		$branch_commit_folder = $commits_master_directory;
+	} 
+	my @list_of_commit_dirs = glob( $branch_commit_folder . '/*');
+	if (@list_of_commit_dirs == 0){
+		return -1;
+	}
+	@list_of_commit_dirs = sort @list_of_commit_dirs;
+	return basename($list_of_commit_dirs[$#list_of_commit_dirs]);
+}
+
 
 # check if index is same as repo
 sub checkIfIndexSameAsRepo {
@@ -110,6 +150,7 @@ sub commitChanges {
 	print $LOG "$current_commit_number $message\n";
 	close $LOG;
 	print "Committed as commit $current_commit_number\n";
+	updateCommitNum();
 }
 
 sub updateIndex {
@@ -150,12 +191,14 @@ sub copyAllFiles {
 	my ($source_folder, $dest_folder) = @_;
 	mkdir $dest_folder if !-e $dest_folder;
 	for $file (glob($source_folder . "/*")){
+		print "copying $file to $dest_folder\n";
 		if (-d $file){
 			# return copyAllFiles($file, $dest_folder);
 			next;
 		}
 		my $file_name = basename($file);
 		my $dest_file = "$dest_folder/$file_name";
+		print "copied from $source_folder to $dest_folder\n";
 		copy($file, $dest_file);
 	}
 }
@@ -225,6 +268,7 @@ if ($ARGV[0] eq "commit") {
 			print "nothing to commit\n";
 			exit 0;
 		}
+		$current_commit_number = getSysCommitNumber();
 		$current_commit_number++;
 		commitChanges($current_commit_number, $message);
 		exit 0;
@@ -256,6 +300,7 @@ if ($ARGV[0] eq "commit") {
 			print "nothing to commit\n";
 			exit 0;
 		}
+		$current_commit_number = getSysCommitNumber();
 		$current_commit_number++;
 		commitChanges($current_commit_number, $message);
 		exit 0;
@@ -581,7 +626,7 @@ if ($ARGV[0] eq "checkout") {
 		print "usage: legit.pl checkout <branch-name>\n";
 		exit 1;
 	}
-	$target_branch = $ARGV[0];
+	my $target_branch = $ARGV[0];
 	# Update current branch marker
 	open $BRANCHCHECK, '<', $branch_track or die "failed to read to $branch_track - $!\n";
 	my $current_branch = <$BRANCHCHECK>;
@@ -593,13 +638,23 @@ if ($ARGV[0] eq "checkout") {
 		print "Already on '$target_branch'\n";
 		exit 1;
 	}
-
+	# check commits
+	# if ($current_branch eq "master") {
+	# 	my $commit_number = getCommitNumber();
+	# } else {
+	# 	my $commit_number = getbranchCommitNumber($current_branch);
+	# }
+	# copy everything from the target branch into current directory
 	# if master, don't use branch folder
+	my $commit_number = getbranchCommitNumber($target_branch);
 	if ($target_branch eq "master") {
-		# if checking out to master branch, move
+		$copy_from_folder = "$commits_master_directory/$commit_number";
+	} else {
+		$copy_from_folder = "$branch_folder/$target_branch/commits/$commit_number";
 	}
-
-
+	print "trying to copy from $copy_from_folder to $PATH\n";
+	copyAllFiles($copy_from_folder, $PATH);
+	# when change to a branch, copy everything commited in that branch out and everythin in current to its respective folder
 
 
 	open $BRANCHUPDATE, '>', $branch_track or die "failed to write to $branch_track - $!\n";
