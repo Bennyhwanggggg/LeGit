@@ -60,9 +60,9 @@ if (! -z $branch_track) {
 	close $BRANCHGET;
 	if ($CURRENT_BRANCH ne "master") {
 		$commits_directory = "$branch_folder/$CURRENT_BRANCH/commits";
-		$index_file = "$branch_folder/$CURRENT_BRANCH/index";
+		# $index_file = "$branch_folder/$CURRENT_BRANCH/index";
 		$log_file = "$branch_folder/$CURRENT_BRANCH/log";
-		$index_folder = "$branch_folder/$CURRENT_BRANCH/index_files";
+		# $index_folder = "$branch_folder/$CURRENT_BRANCH/index_files";
 	}
 }
 
@@ -599,12 +599,12 @@ if ($ARGV[0] eq "branch") {
 			exit 1;
 		}
 		mkdir $new_branch or die "legit.pl: error: faile to create $new_branch\n";
-		my $new_branch_index_folder = "$new_branch/index_files";
+		# my $new_branch_index_folder = "$new_branch/index_files";
 		my $new_branch_commit_folder = "$new_branch/commits";
 		mkdir $new_branch_commit_folder if ! -e $new_branch_commit_folder;
 		copy($index_file, "$new_branch/index");
 		copy($log_file, "$new_branch/log");
-		copyAllFiles($index_folder, $new_branch_index_folder);
+		# copyAllFiles($index_folder, $new_branch_index_folder);
 		# copy commit history
 		for $folder (glob($commits_directory . "/*")) {
 			my $folder_name = $folder;
@@ -646,6 +646,9 @@ if ($ARGV[0] eq "checkout") {
 	# }
 	# copy everything from the target branch into current directory
 	# if master, don't use branch folder
+	# if file exist in current branch commit but not target branch commit, remove it
+
+	# when change to a branch, copy everything commited in that branch out and everythin in current to its respective folder
 	my $commit_number = getbranchCommitNumber($target_branch);
 	if ($target_branch eq "master") {
 		$copy_from_folder = "$commits_master_directory/$commit_number";
@@ -653,8 +656,25 @@ if ($ARGV[0] eq "checkout") {
 		$copy_from_folder = "$branch_folder/$target_branch/commits/$commit_number";
 	}
 	copyAllFiles($copy_from_folder, $PATH);
-	# when change to a branch, copy everything commited in that branch out and everythin in current to its respective folder
 
+	# if file exist in current branch commit but not target branch commit, remove it
+	my $current_branch_commit_number = getbranchCommitNumber($current_branch);
+	my $target_branch_commits_folder = $copy_from_folder;
+	my $current_branch_commits_folder = "$branch_folder/$current_branch/commits/$current_branch_commit_number";
+	if ($current_branch eq "master"){
+		$current_branch_commits_folder = "$commits_master_directory/$current_branch_commit_number";
+	}
+	# at this point we know the current directory at least have all the file from target branch
+	# we need to remove tracked files in current directory that are not in current branch, so if a file exist in
+	# current branch but not target, remove it?
+	foreach $file (glob("*")) {
+		print "$file\n";
+		$current_path = "$current_branch_commits_folder/$file";
+		$target_path = "$target_branch_commits_folder/$file";
+		if (-e $current_path and ! -e $target_path) {
+			unlink $file;
+		}
+	}
 
 	open $BRANCHUPDATE, '>', $branch_track or die "failed to write to $branch_track - $!\n";
 	print $BRANCHUPDATE "$target_branch" if $target_branch ne "master";
