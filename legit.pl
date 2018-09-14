@@ -652,7 +652,6 @@ if ($ARGV[0] eq "checkout") {
 	} else {
 		$copy_from_folder = "$branch_folder/$target_branch/commits/$commit_number";
 	}
-	print "trying to copy from $copy_from_folder to $PATH\n";
 	copyAllFiles($copy_from_folder, $PATH);
 	# when change to a branch, copy everything commited in that branch out and everythin in current to its respective folder
 
