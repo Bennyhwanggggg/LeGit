@@ -582,7 +582,7 @@ if ($ARGV[0] eq "branch") {
 		$branch_to_delete_commits = "$branch_folder_to_del/commits";
 		$branch_commit_number = getbranchCommitNumber($branch_folder_to_del);
 		$master_commit_number = getbranchCommitNumber($commits_master_directory);
-		if (("$commits_master_directory/$master_commit_number", "$branch_to_delete_commits/$branch_commit_number") == 0) {
+		if (checkIfTwoFoldersAreTheSame("$commits_master_directory/$master_commit_number", "$branch_to_delete_commits/$branch_commit_number") == 0) {
 			print "legit.pl: error: branch '$branch_to_delete' has unmerged changes\n";
 			exit 1;
 		}
