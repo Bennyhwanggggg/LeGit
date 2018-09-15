@@ -249,7 +249,6 @@ sub updateIndexFolder {
 		my $file = basename($file, '*');
 		my $index_file_path = "$index_folder/$file";
 		if (!-e $file && -e $index_file_path) { # if file was removed
-			print "removing $index_file_path\n";
 			unlink $index_file_path;
 		} else {
 			open my $CHECKER, '<', $file or die "legit.pl: error: can not open '$file'\n";
