@@ -1,0 +1,63 @@
+legit.pl init:
+Initialized empty legit repository in .legit
+legit.pl add file1:
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+legit.pl log:
+legit.pl: error: your repository does not have any commits yet
+legit.pl commit -m commit 1:
+usage: legit.pl commit [-a] -m commit-message
+legit.pl commit -m commit-1:
+Committed as commit 0
+legit.pl log:
+0 commit-1
+legit.pl add file1 file2:
+legit.pl log:
+0 commit-1
+legit.pl commit -m commit-2:
+Committed as commit 1
+legit.pl log:
+1 commit-2
+0 commit-1
+legit.pl show 4:file1:
+legit.pl: error: unknown commit '4'
+legit.pl show 4:unknown:
+legit.pl: error: unknown commit '4'
+legit.pl show 0:unknown:
+legit.pl: error: 'unknown' not found in commit 0
+legit.pl show 0:file1:
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+legit.pl show 1:file1:
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+new line
+legit commit -m commit-3:
+nothing to commit
+legit.pl log:
+1 commit-2
+0 commit-1

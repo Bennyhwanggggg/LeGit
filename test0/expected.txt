@@ -1,0 +1,38 @@
+legit.pl init:
+Initialized empty legit repository in .legit
+legit.pl commit:
+usage: legit.pl commit [-a] -m commit-message
+legit.pl log:
+legit.pl: error: your repository does not have any commits yet
+legit.pl show:
+legit.pl: error: your repository does not have any commits yet
+legit.pl show :a:
+legit.pl: error: your repository does not have any commits yet
+legit.pl commit -a -m test:
+nothing to commit
+legit.pl rm:
+legit.pl: error: your repository does not have any commits yet
+legit.pl rm --force:
+legit.pl: error: your repository does not have any commits yet
+legit.pl rm --cached:
+legit.pl: error: your repository does not have any commits yet
+legit.pl status:
+legit.pl: error: your repository does not have any commits yet
+legit.pl branch:
+legit.pl: error: your repository does not have any commits yet
+legit.pl commit -m test:
+nothing to commit
+legit.pl branch -d test:
+legit.pl: error: your repository does not have any commits yet
+legit.pl merge:
+legit.pl: error: your repository does not have any commits yet
+12345
+legit.pl add file1:
+12345
+abcde
+legit.pl commit -m commit1:
+Committed as commit 0
+legit.pl commit -m commit2:
+nothing to commit
+legit.pl commit -a -m commit3:
+Committed as commit 1
