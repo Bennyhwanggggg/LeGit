@@ -887,29 +887,66 @@ if ($ARGV[0] eq 'merge') {
 		print "usage: legit.pl merge <branch|commit> -m message\n";
 		exit 1;
 	}
-	my $branch = shift @ARGV;
-	if ($branch =~ /-\w+/ ) {
-		print "usage: legit.pl merge <branch|commit> -m message\n";
-		exit 1;
+	if ($ARGV[0] eq "-m") { # input version 1, legit.pl merge -m <message> <branch name
+		shift @ARGV;
+		if (@ARGV == 0){
+			print "usage: legit.pl merge <branch|commit> -m message\n";
+			exit 1;
+		}
+		$msg = shift @ARGV;
+		if (@ARGV == 0){
+			print "usage: legit.pl merge <branch|commit> -m message\n";
+			exit 1;
+		}
+		$branch = shift @ARGV;
+		if (@ARGV) {
+			print "usage: legit.pl merge <branch|commit> -m message\n";
+			exit 1;
+		}
+	} else {
+		my $branch = shift @ARGV;
+		if ($branch =~ /-\w+/ ) {
+			print "usage: legit.pl merge <branch|commit> -m message\n";
+			exit 1;
+		}
+		if (@ARGV == 0) {
+			print "legit.pl: error: empty commit message\n";
+			exit 1;
+		}
+		my $isMsg = shift @ARGV;
+		if ($isMsg ne "-m") {
+			print "usage: legit.pl merge <branch|commit> -m message\n";
+			exit 1;
+		}
+		if (@ARGV == 0) {
+			print "usage: legit.pl merge <branch|commit> -m message\n";
+			exit 1;
+		}
+		$msg = shift @ARGV;
 	}
-	if (@ARGV == 0) {
-		print "legit.pl: error: empty commit message\n";
-		exit 1;
-	}
-	my $isMsg = shift @ARGV;
-	if ($isMsg ne "-m") {
-		print "usage: legit.pl merge <branch|commit> -m message\n";
-		exit 1;
-	}
-	if (@ARGV == 0) {
-		print "usage: legit.pl merge <branch|commit> -m message\n";
-		exit 1;
-	}
+
+	# my $branch = shift @ARGV;
+	# if ($branch =~ /-\w+/ ) {
+	# 	print "usage: legit.pl merge <branch|commit> -m message\n";
+	# 	exit 1;
+	# }
+	# if (@ARGV == 0) {
+	# 	print "legit.pl: error: empty commit message\n";
+	# 	exit 1;
+	# }
+	# my $isMsg = shift @ARGV;
+	# if ($isMsg ne "-m") {
+	# 	print "usage: legit.pl merge <branch|commit> -m message\n";
+	# 	exit 1;
+	# }
+	# if (@ARGV == 0) {
+	# 	print "usage: legit.pl merge <branch|commit> -m message\n";
+	# 	exit 1;
+	# }
 	if ($branch ne "master" and ! -e "$branch_folder/$branch") {
 		print "legit.pl: error: unknown branch '$branch'\n";
 		exit 1;
 	}
-	my $msg = shift @ARGV;
 	my $pull_from_folder_commits = "$branch_folder/$branch/commits";
 	my $pull_to_folder_commits = "$branch_folder/$CURRENT_BRANCH/commits";
 	if ($branch eq "master"){
