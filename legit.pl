@@ -62,7 +62,7 @@ if (! -z $branch_track) {
 	if ($CURRENT_BRANCH ne "master") {
 		$commits_directory = "$branch_folder/$CURRENT_BRANCH/commits";
 		# $index_file = "$branch_folder/$CURRENT_BRANCH/index";
-		$log_file = "$branch_folder/$CURRENT_BRANCH/log";
+		# $log_file = "$branch_folder/$CURRENT_BRANCH/log";
 		# $index_folder = "$branch_folder/$CURRENT_BRANCH/index_files";
 	}
 }
@@ -823,12 +823,12 @@ if ($ARGV[0] eq 'merge') {
 	}
 	shift @ARGV;
 	if (@ARGV == 0) {
-		print "usage: legit.pl merge [-m <branch|commit>\n";
+		print "usage: legit.pl merge <branch|commit> -m message\n";
 		exit 1;
 	}
 	my $branch = shift @ARGV;
 	if ($branch =~ /-\w+/ ) {
-		print "usage: legit.pl merge [-m <branch|commit>\n";
+		print "usage: legit.pl merge <branch|commit> -m message\n";
 		exit 1;
 	}
 	if (@ARGV == 0) {
@@ -837,17 +837,18 @@ if ($ARGV[0] eq 'merge') {
 	}
 	my $isMsg = shift @ARGV;
 	if ($isMsg ne "-m") {
-		print "usage: legit.pl merge [-m <branch|commit>\n";
+		print "usage: legit.pl merge <branch|commit> -m message\n";
 		exit 1;
 	}
 	if (@ARGV == 0) {
-		print "usage: legit.pl merge [-m <branch|commit>\n";
+		print "usage: legit.pl merge <branch|commit> -m message\n";
 		exit 1;
 	}
 	if ($branch ne "master" and ! -e "$branch_folder/$branch") {
 		print "legit.pl: error: unknown branch '$branch'\n";
 		exit 1;
 	}
+	my $msg = shift @ARGV;
 	my $pull_from_folder_commits = "$branch_folder/$branch/commits";
 	my $pull_to_folder_commits = "$branch_folder/$CURRENT_BRANCH/commits";
 	if ($branch eq "master"){
@@ -873,6 +874,7 @@ if ($ARGV[0] eq 'merge') {
 	# merge if difference in same line it is conflict, if differnce not same, accept longer one?
 	checkMergeConflict($pull_from_folder, $pull_to_folder);
 	copyAllFiles($pull_to_folder, $PATH);
+	commitChanges($pull_to_commit_number, $msg);
 	exit 0;
 }
 
