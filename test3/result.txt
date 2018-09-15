@@ -1,0 +1,35 @@
+legit.pl init:
+Initialized empty legit repository in .legit
+legit.pl add file1 file2 file3:
+legit.pl commit -m 'commit 1':
+Committed as commit 0
+legit.pl rm --force file2:
+legit.pl status:
+expected.txt - untracked
+file1 - same as repo
+file2 - deleted
+file3 - same as repo
+legit.pl - untracked
+result.txt - untracked
+legit.pl log:
+0 commit 1
+legit.pl add file1 file2 file3:
+legit.pl: error: can not open 'file2'
+legit.pl add file1 file3:
+legit.pl commit -m commit02:
+Committed as commit 1
+legit.pl status:
+expected.txt - untracked
+file1 - same as repo
+file3 - same as repo
+legit.pl - untracked
+result.txt - untracked
+legit.pl rm --cached file3:
+legit.pl status:
+expected.txt - untracked
+file1 - same as repo
+file3 - untracked
+legit.pl - untracked
+result.txt - untracked
+legit.pl rm file3:
+legit.pl: error: 'file3' is not in the legit repository

@@ -1,0 +1,48 @@
+legit.pl init:
+Initialized empty legit repository in .legit
+expected.txt
+file1
+legit.pl
+result.txt
+legit.pl add file1:
+legit.pl commit -m 'commit 1':
+Committed as commit 0
+legit.pl commit -a -m commit2:
+nothing to commit
+legit.pl status:
+expected.txt - untracked
+file1 - same as repo
+legit.pl - untracked
+result.txt - untracked
+legit.pl status:
+expected.txt - untracked
+file1 - changes in index
+legit.pl - untracked
+result.txt - untracked
+legit.pl commit -a -m commit3:
+Committed as commit 1
+legit.pl add file2 file3:
+legit.pl status:
+expected.txt - untracked
+file1 - same as repo
+file2 - added to index
+file3 - added to index
+legit.pl - untracked
+result.txt - untracked
+legit.pl status:
+expected.txt - untracked
+file1 - same as repo
+file2 - added to index
+file3 - added to index
+legit.pl - untracked
+result.txt - untracked
+legit.pl rm file3:
+legit.pl: error: 'file3' has changes staged in the index
+legit.pl commit -a -m commit4:
+Committed as commit 2
+legit.pl status:
+expected.txt - untracked
+file1 - same as repo
+file3 - same as repo
+legit.pl - untracked
+result.txt - untracked

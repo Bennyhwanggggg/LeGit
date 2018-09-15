@@ -249,7 +249,6 @@ sub updateIndexFolder {
 		my $file = basename($file, '*');
 		my $index_file_path = "$index_folder/$file";
 		if (!-e $file && -e $index_file_path) { # if file was removed
-			print "removing $index_file_path\n";
 			unlink $index_file_path;
 		} else {
 			open my $CHECKER, '<', $file or die "legit.pl: error: can not open '$file'\n";
@@ -412,6 +411,12 @@ if ($ARGV[0] eq "add") {
 		if (!@ARGV) {
 			print "legit.pl: error: internal error Nothing specified, nothing added.\n";
 			exit 1;
+		}
+		for $file (@ARGV) {
+			if (! -e $file) {
+				print "legit.pl: error: can not open '$file'\n";
+				exit 1;
+			}
 		}
 
 		# just check if it is in index_file_path and rewrite index at the end by scanning through the index_file_path
@@ -583,6 +588,7 @@ if ($ARGV[0] eq "rm") {
 	if ($ARGV[0] eq "--cached") {
 		# only remove from index
 		shift @ARGV;
+
 		for $file (@ARGV) { # reference implementation checks everything first before deleting
 			my $index_file_path = "$index_folder/$file"; 
 			my $commited_file = "$commits_directory/$current_commit_number/$file";
@@ -625,10 +631,11 @@ if ($ARGV[0] eq "rm") {
 		# if not in repo or index = not in legit repo
 		# if in index but not repo or different from repo (file was modifed and added) =  has changes staged in the index
 		# if file is differnet from index (and repo) differnt to working file (changes made in directory  but no add)
+		
 		for $file (@ARGV) {
 			my $commited_file = "$commits_directory/$current_commit_number/$file";
 			my $index_file_path = "$index_folder/$file";
-			if (!-e $commited_file and !-e $index_file_path) {
+			if (!-e $index_file_path) {#(!-e $commited_file and !-e $index_file_path) {
 				print "legit.pl: error: '$file' is not in the legit repository\n";
 				exit 1;
 			}
@@ -711,14 +718,18 @@ if ($ARGV[0] eq "status") {
 		# handle delete cases, if only not in current => file deleted, not in both index and current => deleted
 		} elsif (! -e $file and ! -e $indexed_file and -e $committed_file) {
 			$all_files{$file} = "deleted";
+		} elsif (-e $indexed_file and !-e $committed_file) {
+			# added to index only if it doesn;t exist in commit
+			$all_files{$file} = "added to index";
 		} elsif (! -e $file and -e $indexed_file) {
 			$all_files{$file} = "file deleted";
 		} elsif (-e $file and ! -e $indexed_file) {
 			$all_files{$file} = "untracked";
-		} elsif (-e $indexed_file and !-e $committed_file) {
-			# added to index only if it doesn;t exist in commit
-			$all_files{$file} = "added to index";
 		}
+		# } elsif (-e $indexed_file and !-e $committed_file) {
+		# 	# added to index only if it doesn;t exist in commit
+		# 	$all_files{$file} = "added to index";
+		# }
 	}
 	foreach my $file (sort keys %all_files){
 		print "$file - $all_files{$file}\n";
