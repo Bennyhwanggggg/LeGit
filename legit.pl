@@ -62,7 +62,7 @@ if (! -z $branch_track) {
 	if ($CURRENT_BRANCH ne "master") {
 		$commits_directory = "$branch_folder/$CURRENT_BRANCH/commits";
 		# $index_file = "$branch_folder/$CURRENT_BRANCH/index";
-		# $log_file = "$branch_folder/$CURRENT_BRANCH/log";
+		$log_file = "$branch_folder/$CURRENT_BRANCH/log";
 		# $index_folder = "$branch_folder/$CURRENT_BRANCH/index_files";
 	}
 }
@@ -102,7 +102,9 @@ sub getbranchCommitNumber{
 	if ($branch eq "master") {
 		$branch_commit_folder = $commits_master_directory;
 	} 
+	# print "Getting commit number from $branch_commit_folder\n";
 	my @list_of_commit_dirs = glob( $branch_commit_folder . '/*');
+	# print "@list_of_commit_dirs\n";
 	if (@list_of_commit_dirs == 0){
 		return -1;
 	}
@@ -170,6 +172,25 @@ sub commitChanges {
 	print $LOG "$current_commit_number $message\n";
 	close $LOG;
 	print "Committed as commit $current_commit_number\n";
+	updateCommitNum();
+}
+
+sub commitMergeChanges {
+	my ($current_commit_number, $message) = @_;
+	my $new_commit_folder = "$commits_directory/$current_commit_number";
+	if (!-e $new_commit_folder) {
+		mkdir $new_commit_folder or die "legit.pl: error: failed to create $new_commit_folder $!\n";
+	}
+	# print "commiting to $new_commit_folder\n";
+	for $file (glob($index_folder . '/*')) {
+		my $file_name = basename($file, "*");
+		copy($file, "$new_commit_folder/$file_name") or die "legit.pl: error: failed to copy '$file' into '$new_commit_folder/$file'. - $!\n";
+	}
+	open my $LOG, '>>', $log_file or die "legit.pl: error: Failed to open $log_file\n";
+	$syscommitNumber = getSysCommitNumber();
+	print $LOG "$syscommitNumber $message\n";
+	close $LOG;
+	print "Committed as commit $syscommitNumber\n";
 	updateCommitNum();
 }
 
@@ -427,6 +448,9 @@ if ($ARGV[0] eq "commit") {
 		$current_commit_number++;
 		commitChanges($current_commit_number, $message);
 		exit 0;
+	} else {
+		print "usage: legit.pl commit [-a] -m commit-message\n";
+		exit 1;
 	}
 }
 
@@ -701,11 +725,16 @@ if ($ARGV[0] eq "branch") {
 			print "legit.pl: error: branch '$branch_to_delete' does not exist\n";
 			exit 1;
 		}
+
+		# if delete branch with unmerged work, legit.pl: error: branch 'branch1' has unmerged changes
+		# check if branch to delete's commit folder is same as current branch's commit folder
+
+
 		# unmerged if repo to delete is different from master?
 		$branch_to_delete_commits = "$branch_folder_to_del/commits";
-		$branch_commit_number = getbranchCommitNumber($branch_folder_to_del);
-		$master_commit_number = getbranchCommitNumber($commits_master_directory);
-		if (checkIfTwoFoldersAreTheSame("$commits_master_directory/$master_commit_number", "$branch_to_delete_commits/$branch_commit_number") == 0) {
+		$branch_commit_number = getbranchCommitNumber($branch_to_delete);
+		$current_branch_commit_number = getbranchCommitNumber($CURRENT_BRANCH);
+		if (checkIfTwoFoldersAreTheSame("$commits_directory/$current_branch_commit_number", "$branch_to_delete_commits/$branch_commit_number") == 0) {
 			print "legit.pl: error: branch '$branch_to_delete' has unmerged changes\n";
 			exit 1;
 		}
@@ -878,7 +907,7 @@ if ($ARGV[0] eq 'merge') {
 	# merge if difference in same line it is conflict, if differnce not same, accept longer one?
 	checkMergeConflict($pull_from_folder, $pull_to_folder);
 	copyAllFiles($pull_to_folder, $PATH);
-	commitChanges($pull_to_commit_number, $msg);
+	commitMergeChanges($pull_to_commit_number, $msg);
 	exit 0;
 }
 
