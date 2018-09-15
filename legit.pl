@@ -187,11 +187,11 @@ sub commitMergeChanges {
 		copy($file, "$new_commit_folder/$file_name") or die "legit.pl: error: failed to copy '$file' into '$new_commit_folder/$file'. - $!\n";
 	}
 	open my $LOG, '>>', $log_file or die "legit.pl: error: Failed to open $log_file\n";
+	updateCommitNum();
 	$syscommitNumber = getSysCommitNumber();
 	print $LOG "$syscommitNumber $message\n";
 	close $LOG;
 	print "Committed as commit $syscommitNumber\n";
-	updateCommitNum();
 }
 
 sub updateIndex {
