@@ -904,7 +904,7 @@ if ($ARGV[0] eq 'merge') {
 			exit 1;
 		}
 	} else {
-		my $branch = shift @ARGV;
+		$branch = shift @ARGV;
 		if ($branch =~ /-\w+/ ) {
 			print "usage: legit.pl merge <branch|commit> -m message\n";
 			exit 1;
