@@ -62,7 +62,7 @@ if (! -z $branch_track) {
 	if ($CURRENT_BRANCH ne "master") {
 		$commits_directory = "$branch_folder/$CURRENT_BRANCH/commits";
 		# $index_file = "$branch_folder/$CURRENT_BRANCH/index";
-		# $log_file = "$branch_folder/$CURRENT_BRANCH/log";
+		$log_file = "$branch_folder/$CURRENT_BRANCH/log";
 		# $index_folder = "$branch_folder/$CURRENT_BRANCH/index_files";
 	}
 }
@@ -176,7 +176,7 @@ sub commitChanges {
 }
 
 sub commitMergeChanges {
-	my ($current_commit_number, $message) = @_;
+	my ($current_commit_number, $message, $merge_log) = @_; # need from folder's log file as well
 	$current_commit_number++;
 	my $new_commit_folder = "$commits_directory/$current_commit_number";
 	if (!-e $new_commit_folder) {
@@ -189,25 +189,29 @@ sub commitMergeChanges {
 	}
 	open my $LOG, '>>', $log_file or die "legit.pl: error: Failed to open $log_file\n";
 	updateCommitNum();
+	mergeLog($commit_number, $msg, $merge_log, $log_file);
 	# $syscommitNumber = getSysCommitNumber();
 	print $LOG "$current_commit_number $message\n";
 	close $LOG;
 	print "Committed as commit $current_commit_number\n";
 }
 
-# sub rewriteLog {
-# 	my ($commit_number, $msg) = @_;
-# 	open my $LOGIN, '<', $log_file or die "legit.pl: error: Failed to open $log_file\n";
-# 	for ($line = <$LOGIN>) {
-# 		if ($line =~ /(\d+) \w+)/) {
-# 			if ($1 == $commit_number) {
-# 				push "$commit_number $msg"
-# 			}
-# 		}
-# 	}
+sub mergeLog {
+	my ($commit_number, $msg, $merge_from_log, $merge_to_log) = @_;
+	if ($commit_number or $msg or $merge_from_log or $merge_to_log) {
+		return 1;
+	}
+	# open my $LOGIN, '<', $log_file or die "legit.pl: error: Failed to open $log_file\n";
+	# for ($line = <$LOGIN>) {
+	# 	if ($line =~ /(\d+) \w+)/) {
+	# 		if ($1 == $commit_number) {
+	# 			push "$commit_number $msg"
+	# 		}
+	# 	}
+	# }
 
-# 	open my $LOGOUT, '>', $log_file or die "legit.pl: error: Failed to open $log_file\n";
-# }
+	# open my $LOGOUT, '>', $log_file or die "legit.pl: error: Failed to open $log_file\n";
+}
 
 sub updateIndex {
 	my (@to_be_indexed_files) = @_;
@@ -962,6 +966,7 @@ if ($ARGV[0] eq 'merge') {
 	}
 	my $pull_from_folder_commits = "$branch_folder/$branch/commits";
 	my $pull_to_folder_commits = "$branch_folder/$CURRENT_BRANCH/commits";
+	my $pull_from_log = "$branch_folder/$branch/log";
 	if ($branch eq "master"){
 		$pull_from_folder_commits = $commits_master_directory;
 	}
@@ -985,7 +990,7 @@ if ($ARGV[0] eq 'merge') {
 	# merge if difference in same line it is conflict, if differnce not same, accept longer one?
 	checkMergeConflict($pull_from_folder, $pull_to_folder);
 	copyAllFiles($pull_to_folder, $PATH);
-	commitMergeChanges($pull_to_commit_number, $msg);
+	commitMergeChanges($pull_to_commit_number, $msg, $pull_from_log);
 	exit 0;
 }
 
