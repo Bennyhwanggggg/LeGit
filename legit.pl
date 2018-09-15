@@ -177,13 +177,14 @@ sub commitChanges {
 
 sub commitMergeChanges {
 	my ($current_commit_number, $message, $merge_log) = @_; # need from folder's log file as well
+	$prev_commit_number = $current_commit_number;
 	$current_commit_number++;
 	my $new_commit_folder = "$commits_directory/$current_commit_number";
 	if (!-e $new_commit_folder) {
 		mkdir $new_commit_folder or die "legit.pl: error: failed to create $new_commit_folder $!\n";
 	}
 	# print "commiting to $new_commit_folder\n";
-	for $file (glob($index_folder . '/*')) {
+	for $file (glob("$commits_directory/$prev_commit_number" . '/*')) {
 		my $file_name = basename($file, "*");
 		copy($file, "$new_commit_folder/$file_name") or die "legit.pl: error: failed to copy '$file' into '$new_commit_folder/$file'. - $!\n";
 	}
@@ -952,24 +953,6 @@ if ($ARGV[0] eq 'merge') {
 		$msg = shift @ARGV;
 	}
 
-	# my $branch = shift @ARGV;
-	# if ($branch =~ /-\w+/ ) {
-	# 	print "usage: legit.pl merge <branch|commit> -m message\n";
-	# 	exit 1;
-	# }
-	# if (@ARGV == 0) {
-	# 	print "legit.pl: error: empty commit message\n";
-	# 	exit 1;
-	# }
-	# my $isMsg = shift @ARGV;
-	# if ($isMsg ne "-m") {
-	# 	print "usage: legit.pl merge <branch|commit> -m message\n";
-	# 	exit 1;
-	# }
-	# if (@ARGV == 0) {
-	# 	print "usage: legit.pl merge <branch|commit> -m message\n";
-	# 	exit 1;
-	# }
 	if ($branch ne "master" and ! -e "$branch_folder/$branch") {
 		print "legit.pl: error: unknown branch '$branch'\n";
 		exit 1;
@@ -1000,7 +983,9 @@ if ($ARGV[0] eq 'merge') {
 	# merge if difference in same line it is conflict, if differnce not same, accept longer one?
 	checkMergeConflict($pull_from_folder, $pull_to_folder);
 	copyAllFiles($pull_to_folder, $PATH);
+	updateIndexFolder(glob($pull_to_folder . "/*"));
 	commitMergeChanges($pull_to_commit_number, $msg, $pull_from_log);
+	# update index folder using the current file committed
 	exit 0;
 }
 
