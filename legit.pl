@@ -177,6 +177,7 @@ sub commitChanges {
 
 sub commitMergeChanges {
 	my ($current_commit_number, $message) = @_;
+	$current_commit_number++;
 	my $new_commit_folder = "$commits_directory/$current_commit_number";
 	if (!-e $new_commit_folder) {
 		mkdir $new_commit_folder or die "legit.pl: error: failed to create $new_commit_folder $!\n";
