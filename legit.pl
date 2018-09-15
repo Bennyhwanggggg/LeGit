@@ -188,10 +188,10 @@ sub commitMergeChanges {
 	}
 	open my $LOG, '>>', $log_file or die "legit.pl: error: Failed to open $log_file\n";
 	updateCommitNum();
-	$syscommitNumber = getSysCommitNumber();
-	print $LOG "$syscommitNumber $message\n";
+	# $syscommitNumber = getSysCommitNumber();
+	print $LOG "$current_commit_number $message\n";
 	close $LOG;
-	print "Committed as commit $syscommitNumber\n";
+	print "Committed as commit $current_commit_number\n";
 }
 
 sub updateIndex {
