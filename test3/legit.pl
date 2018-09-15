@@ -444,7 +444,8 @@ if ($ARGV[0] eq "commit") {
 		}
 		my $current_commit_number = getCommitNumber();
 		# if commits have been made so far
-		if (-z $index_file or checkIfIndexSameAsRepo($current_commit_number) == 1){
+		# if (-z $index_file or checkIfIndexSameAsRepo($current_commit_number) == 1){
+		if (checkIfIndexSameAsRepo($current_commit_number) == 1){
 			print "nothing to commit\n";
 			exit 0;
 		}

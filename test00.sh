@@ -90,5 +90,5 @@ then
 	echo "pass!"
 else
 	echo "failed"
-	diff $result $expected
+	diff -y $result $expected
 fi

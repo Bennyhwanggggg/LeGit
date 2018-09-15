@@ -1,0 +1,51 @@
+legit.pl init:
+Initialized empty legit repository in .legit
+legit.pl add file1 file2 file3:
+legit.pl commit -m 'commit 1':
+Committed as commit 0
+legit.pl rm --force file2:
+legit.pl status:
+expected.txt - untracked
+file1 - same as repo
+file2 - deleted
+file3 - same as repo
+legit.pl - untracked
+result.txt - untracked
+legit.pl log:
+0 commit 1
+legit.pl show 0:file2:
+abcdefg
+legit.pl show :file2:
+legit.pl: error: 'file2' not found in index
+legit.pl show :file1:
+123456
+legit.pl status:
+expected.txt - untracked
+file1 - changes in index
+file2 - deleted
+file3 - same as repo
+legit.pl - untracked
+result.txt - untracked
+legit.pl rm --cached file3:
+legit.pl rm --cached file1 file2:
+legit.pl: error: 'file2' is not in the legit repository
+legit.pl rm --cached file1:
+legit.pl status:
+expected.txt - untracked
+file1 - untracked
+file2 - deleted
+file3 - untracked
+legit.pl - untracked
+result.txt - untracked
+legit.pl commit -m 'commit 2':
+Committed as commit 1
+legit.pl show 1:file2:
+legit.pl: error: 'file2' not found in commit 1
+legit.pl show :file2:
+legit.pl: error: 'file2' not found in index
+legit.pl show :file1:
+legit.pl: error: 'file1' not found in index
+legit.pl show 0:file1:
+123456
+legit.pl commit -a -m 'commit 3':
+nothing to commit

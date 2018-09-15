@@ -36,6 +36,7 @@ echo "legit.pl status:\nexpected.txt - untracked\n$test_file_1 - same as repo\n$
 echo "legit.pl rm --cached $test_file_3:" >> $expected
 echo "legit.pl status:\nexpected.txt - untracked\n$test_file_1 - same as repo\n$test_file_3 - untracked\nlegit.pl - untracked\nresult.txt - untracked" >> $expected
 echo "legit.pl rm $test_file_3:\nlegit.pl: error: '$test_file_3' is not in the legit repository" >> $expected
+echo "legit.pl rm --force $test_file_3:\nlegit.pl: error: '$test_file_3' is not in the legit repository" >> $expected
 
 
 echo "legit.pl init:" >> $result
@@ -68,6 +69,8 @@ echo "legit.pl status:" >> $result
 perl legit.pl status >> $result
 echo "legit.pl rm $test_file_3:" >> $result
 perl legit.pl rm $test_file_3 >> $result
+echo "legit.pl rm --force $test_file_3:" >> $result
+perl legit.pl rm --force $test_file_3 >> $result
 
 
 
@@ -76,5 +79,5 @@ then
 	echo "pass!"
 else
 	echo "failed"
-	# diff -y $result $expected
+	diff -y $result $expected
 fi

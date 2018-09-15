@@ -33,3 +33,5 @@ legit.pl - untracked
 result.txt - untracked
 legit.pl rm file3:
 legit.pl: error: 'file3' is not in the legit repository
+legit.pl rm --force file3:
+legit.pl: error: 'file3' is not in the legit repository
