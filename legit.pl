@@ -189,28 +189,38 @@ sub commitMergeChanges {
 	}
 	open my $LOG, '>>', $log_file or die "legit.pl: error: Failed to open $log_file\n";
 	updateCommitNum();
-	mergeLog($commit_number, $msg, $merge_log, $log_file);
 	# $syscommitNumber = getSysCommitNumber();
 	print $LOG "$current_commit_number $message\n";
 	close $LOG;
 	print "Committed as commit $current_commit_number\n";
+	mergeLog($merge_log, $log_file);
 }
 
 sub mergeLog {
-	my ($commit_number, $msg, $merge_from_log, $merge_to_log) = @_;
-	if ($commit_number or $msg or $merge_from_log or $merge_to_log) {
-		return 1;
+	my ($merge_from_log, $merge_to_log) = @_;
+	open my $TO_IN, '<', $merge_to_log or die "legit.pl: error: Failed to open $merge_to_log\n";
+	open my $FROM_IN, '<', $merge_from_log or die "legit.pl: error: Failed to open $merge_from_log\n";
+	while (!eof($TO_IN) and !eof($FROM_IN)) {
+		my $line1 = <$TO_IN>;
+		my $line2 = <$FROM_IN>;
+		if ($line2 =~ /^(\d+) (\w+)$/) {
+			$commit_number = $1;
+			$msg = $2;
+			$to_write{$commit_number} = $msg;
+		}
+		if ($line1 =~ /^(\d+) (\w+)$/) {
+			$commit_number = $1;
+			$msg = $2;
+			$to_write{$commit_number} = $msg;
+		}
 	}
-	# open my $LOGIN, '<', $log_file or die "legit.pl: error: Failed to open $log_file\n";
-	# for ($line = <$LOGIN>) {
-	# 	if ($line =~ /(\d+) \w+)/) {
-	# 		if ($1 == $commit_number) {
-	# 			push "$commit_number $msg"
-	# 		}
-	# 	}
-	# }
-
-	# open my $LOGOUT, '>', $log_file or die "legit.pl: error: Failed to open $log_file\n";
+	close $TO_IN;
+	close $FROM_IN;
+	open my $LOGOUT, '>', $log_file or die "legit.pl: error: Failed to open $log_file\n";
+	for $n (keys @to_write) {
+		print $LOGOUT "$n $to_write{$n}\n";
+	}
+	close $LOGOUT;
 }
 
 sub updateIndex {
