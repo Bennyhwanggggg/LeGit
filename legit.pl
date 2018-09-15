@@ -288,11 +288,9 @@ sub checkMergeConflict { # base = current branch commited (folder2 commited), # 
 						push @merge_conflict, $file;
 						last
 					} elsif ($line1 eq $line3 and $line2 ne $line3) {
-						print "automerge\n";
 						$auto_merged{$file}++;
 					}	elsif ($line1 ne $line3 and $line2 eq $line3) {
 						$auto_merged{$file}++;
-						print "automerge\n";
 					}
 				}
 				while (!eof($F1)) {
