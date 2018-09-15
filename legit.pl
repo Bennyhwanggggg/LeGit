@@ -50,6 +50,7 @@ if (@ARGV == 1 and $ARGV[0] eq "init") {
 	}
 }
 
+$CURRENT_BRANCH = "master";
 if (! -z $branch_track) {
 	if (!-e $init_directory) {
 		print "legit.pl: error: no $init_directory directory containing legit repository exists\n";
@@ -109,6 +110,24 @@ sub getbranchCommitNumber{
 	return basename($list_of_commit_dirs[$#list_of_commit_dirs]);
 }
 
+# get commit number of a specified branch
+sub getSecondLastbranchCommitNumber{
+	my ($branch) = @_;
+	my $branch_commit_folder = "$branch_folder/$branch/commits";
+	if ($branch eq "master") {
+		$branch_commit_folder = $commits_master_directory;
+	} 
+	my @list_of_commit_dirs = glob( $branch_commit_folder . '/*');
+	if (@list_of_commit_dirs <= 0){
+		return -1;
+	}
+	if (@list_of_commit_dirs == 1){
+		return basename($list_of_commit_dirs[$#list_of_commit_dirs]);
+	}
+	# @list_of_commit_dirs = sort @list_of_commit_dirs;
+	return basename($list_of_commit_dirs[$#list_of_commit_dirs-1]);
+}
+
 
 # check if index is same as repo
 sub checkIfIndexSameAsRepo {
@@ -142,6 +161,7 @@ sub commitChanges {
 	if (!-e $new_commit_folder) {
 		mkdir $new_commit_folder or die "legit.pl: error: failed to create $new_commit_folder $!\n";
 	}
+	# print "commiting to $new_commit_folder\n";
 	for $file (glob($index_folder . '/*')) {
 		my $file_name = basename($file, "*");
 		copy($file, "$new_commit_folder/$file_name") or die "legit.pl: error: failed to copy '$file' into '$new_commit_folder/$file'. - $!\n";
@@ -222,6 +242,111 @@ sub checkIfTwoFoldersAreTheSame {
 	return 1;
 }
 
+sub checkMergeConflict { # base = current branch commited (folder2 commited), # current directory (folder 2 file), # folder1 file
+	my ($folder_1, $folder_2) = @_;
+	my $base_commit_num = getSecondLastbranchCommitNumber($CURRENT_BRANCH);
+	my $base_folder = "$commits_directory/$base_commit_num";
+	for $file (glob($folder_1 . '/*')) {
+		my $file_name = basename($file, "*");
+		my $check_file_path = "$folder_2/$file_name";
+		if ( -e $check_file_path or (compare($file, $check_file_path) != 0)) {
+			# get base version if any
+			$base_file = "$base_folder/$file_name";
+			# print "$base_file, $check_file_path, $file_name\n";
+			if (-e $base_file){ # base merge
+				# open my $F1, '<', $file_name or die "legit.pl: error: failed to read $file_name\n";
+				open my $F1, '<', $file or die "legit.pl: error: failed to read $file\n";
+				open my $F2, '<', $check_file_path or die "legit.pl: error: failed to read $check_file_path\n";
+				open my $F3, '<', $base_file or die "legit.pl: error: failed to read $base_file\n";
+				while (!eof($F1) and !eof($F2) and !eof($F3)) {
+					my $line1 = <$F1>;
+					my $line2 = <$F2>;
+					my $line3 = <$F3>;
+					# print "$file: $line1, $check_file_path: $line2, $base_file: $line3\n";
+					if ($line1 ne $line3 and $line2 ne $line3) {
+						push @merge_conflict, $file;
+						last
+					} elsif ($line1 eq $line3 and $line2 ne $line3) {
+						print "automerge\n";
+						$auto_merged{$file}++;
+					}	elsif ($line1 ne $line3 and $line2 eq $line3) {
+						$auto_merged{$file}++;
+						print "automerge\n";
+					}
+				}
+				while (!eof($F1)) {
+					my $line1 = <$F1>;
+					push @lines, $line1;
+				}
+				while (!eof($F2)) {
+					my $line2 = <$F2>;
+					push @lines, $line2;
+				}
+				close $F1;
+				close $F2;
+				close $F3;
+			}
+		} 
+	}
+	if (@merge_conflict) {
+		print "legit.pl: error: These files can not be merged:\n";
+		foreach $conflicts (@merge_conflict) {
+			$conflicts = basename($conflicts);
+			print "$conflicts\n";
+		}
+		exit 1;
+	}
+	foreach $file (keys %auto_merged) {
+		my $file_name = basename($file);
+		my $check_file_path = "$folder_2/$file_name";
+		# print "To be merged: $file,  $file_name,  $check_file_path\n";
+		if ( -e $check_file_path or (compare($file, $check_file_path) != 0)) {
+			# get base version if any
+			# $base_commit_num = getbranchCommitNumber($CURRENT_BRANCH);
+			# $base_folder = "$commits_directory/$base_commit_num";
+			$base_file = "$base_folder/$file_name";
+			# print "base file is $base_file\n";
+			if (-e $base_file){ # base merge
+				# open my $F1, '<', $file_name or die "legit.pl: error: failed to read $file_name\n";
+				open my $F1, '<', $file or die "legit.pl: error: failed to read $file\n";
+				open my $F2, '<', $check_file_path or die "legit.pl: error: failed to read $check_file_path\n";
+				open my $F3, '<', $base_file or die "legit.pl: error: failed to read $base_file\n";
+				while (!eof($F1) and !eof($F2) and !eof($F3)) {
+					my $line1 = <$F1>;
+					my $line2 = <$F2>;
+					my $line3 = <$F3>;
+					# print "checking $file: $line1, $check_file_path: $line2, $base_file: $line3\n";
+					if ($line1 eq $line3 and $line2 ne $line3) {
+						push @lines, $line2;
+					}	elsif ($line1 ne $line3 and $line2 eq $line3) {
+						push @lines, $line1;
+					} else {
+						push @lines, $line3; # all equal, doesn't matter which one we push
+					}
+				}
+				while (!eof($F1)) {
+					my $line1 = <$F1>;
+					push @lines, $line1;
+				}
+				while (!eof($F2)) {
+					my $line2 = <$F2>;
+					push @lines, $line2;
+				}
+				close $F1;
+				close $F2;
+				close $F3;
+			}
+		} 
+		open my $OUT, '>', $check_file_path or die "legit.pl: error: failed to write to $check_file_path\n";
+		for $line (@lines) {
+			print $OUT $line;
+		}
+		print "Auto-merging $file_name\n";
+		close $OUT
+	}
+	return 0;
+}
+
 # Add should check if the added file is the same as the one that is commited
 # if it is the same, don't do anything (don't add to index?)
 # otherwise, 
@@ -272,13 +397,11 @@ if ($ARGV[0] eq "commit") {
 		$current_commit_number++;
 		commitChanges($current_commit_number, $message);
 		exit 0;
-	} elsif ($command eq "-a" || $command eq "-am") {
-		if ($command eq "-a" ) {
-			$command2 = shift @ARGV; 
-			if ($command2 ne "-m") {
-				print "usage: legit.pl commit [-a] -m commit-message\n";
-				exit 1;
-			}
+	} elsif ($command eq "-a") {
+		$command2 = shift @ARGV; 
+		if ($command2 ne "-m") {
+			print "usage: legit.pl commit [-a] -m commit-message\n";
+			exit 1;
 		}
 		$message = shift @ARGV;
 		if (@ARGV or !defined $message) {
@@ -640,6 +763,11 @@ if ($ARGV[0] eq "checkout") {
 		print "Already on '$target_branch'\n";
 		exit 1;
 	}
+
+	# if commited file in current branch different from the branch we are checking out to, error legit.pl: error: Your changes to the following files would be overwritten by checkout:
+
+
+
 	# check commits
 	# if ($current_branch eq "master") {
 	# 	my $commit_number = getCommitNumber();
@@ -670,7 +798,6 @@ if ($ARGV[0] eq "checkout") {
 	# we need to remove tracked files in current directory that are not in current branch, so if a file exist in
 	# current branch but not target, remove it?
 	foreach $file (glob("*")) {
-		print "$file\n";
 		$current_path = "$current_branch_commits_folder/$file";
 		$target_path = "$target_branch_commits_folder/$file";
 		if (-e $current_path and ! -e $target_path) {
@@ -686,3 +813,66 @@ if ($ARGV[0] eq "checkout") {
 	print "Switched to branch '$target_branch'\n";
 	exit 0;
 }
+
+# merge uses current commit number?
+
+if ($ARGV[0] eq 'merge') {
+	if (!-e "$commits_master_directory/0") {
+		print "legit.pl: error: your repository does not have any commits yet\n";
+		exit 1;
+	}
+	shift @ARGV;
+	if (@ARGV == 0) {
+		print "usage: legit.pl merge [-m <branch|commit>\n";
+		exit 1;
+	}
+	my $branch = shift @ARGV;
+	if ($branch =~ /-\w+/ ) {
+		print "usage: legit.pl merge [-m <branch|commit>\n";
+		exit 1;
+	}
+	if (@ARGV == 0) {
+		print "legit.pl: error: empty commit message\n";
+		exit 1;
+	}
+	my $isMsg = shift @ARGV;
+	if ($isMsg ne "-m") {
+		print "usage: legit.pl merge [-m <branch|commit>\n";
+		exit 1;
+	}
+	if (@ARGV == 0) {
+		print "usage: legit.pl merge [-m <branch|commit>\n";
+		exit 1;
+	}
+	if ($branch ne "master" and ! -e "$branch_folder/$branch") {
+		print "legit.pl: error: unknown branch '$branch'\n";
+		exit 1;
+	}
+	my $pull_from_folder_commits = "$branch_folder/$branch/commits";
+	my $pull_to_folder_commits = "$branch_folder/$CURRENT_BRANCH/commits";
+	if ($branch eq "master"){
+		$pull_from_folder_commits = $commits_master_directory;
+	}
+	if ($CURRENT_BRANCH eq "master") {
+		$pull_to_folder_commits = $commits_master_directory;
+	}
+	if ($pull_to_folder_commits eq $pull_from_folder_commits) {
+		print "Already up to date\n";
+		exit 1;
+	}
+	$pull_from_commit_number = getbranchCommitNumber($branch);
+	$pull_from_folder = "$pull_from_folder_commits/$pull_from_commit_number";
+	$pull_to_commit_number = getbranchCommitNumber($CURRENT_BRANCH);
+	$pull_to_folder = "$pull_to_folder_commits/$pull_to_commit_number";
+	if (checkIfTwoFoldersAreTheSame($pull_from_folder, $pull_to_folder) != 0) {
+		print "Already up to date\n";
+		exit 1;
+	}
+
+	# check merge conflicts
+	# merge if difference in same line it is conflict, if differnce not same, accept longer one?
+	checkMergeConflict($pull_from_folder, $pull_to_folder);
+	copyAllFiles($pull_to_folder, $PATH);
+	exit 0;
+}
+
