@@ -200,25 +200,25 @@ sub mergeLog {
 	my ($merge_from_log, $merge_to_log) = @_;
 	open my $TO_IN, '<', $merge_to_log or die "legit.pl: error: Failed to open $merge_to_log\n";
 	open my $FROM_IN, '<', $merge_from_log or die "legit.pl: error: Failed to open $merge_from_log\n";
-	while (!eof($TO_IN) and !eof($FROM_IN)) {
-		my $line1 = <$TO_IN>;
-		my $line2 = <$FROM_IN>;
-		if ($line2 =~ /^(\d+) (\w+)$/) {
+	while ($line = <$TO_IN>) {
+		if ($line =~ /^(\d+)/) {
 			$commit_number = $1;
-			$msg = $2;
-			$to_write{$commit_number} = $msg;
+			$line =~ s/^\d+ //;
+			$to_write{$commit_number} = $line;
 		}
-		if ($line1 =~ /^(\d+) (\w+)$/) {
+	}
+	while ($line = <$FROM_IN>){
+		if ($line =~ /^(\d+)/) {
 			$commit_number = $1;
-			$msg = $2;
-			$to_write{$commit_number} = $msg;
+			$line =~ s/^\d+ //;
+			$to_write{$commit_number} = $line;
 		}
 	}
 	close $TO_IN;
 	close $FROM_IN;
-	open my $LOGOUT, '>', $log_file or die "legit.pl: error: Failed to open $log_file\n";
-	for $n (keys @to_write) {
-		print $LOGOUT "$n $to_write{$n}\n";
+	open my $LOGOUT, '>', $merge_to_log or die "legit.pl: error: Failed to open $log_file\n";
+	for $n (sort keys %to_write) {
+		print $LOGOUT "$n $to_write{$n}";
 	}
 	close $LOGOUT;
 }
