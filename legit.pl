@@ -62,7 +62,7 @@ if (! -z $branch_track) {
 	if ($CURRENT_BRANCH ne "master") {
 		$commits_directory = "$branch_folder/$CURRENT_BRANCH/commits";
 		# $index_file = "$branch_folder/$CURRENT_BRANCH/index";
-		$log_file = "$branch_folder/$CURRENT_BRANCH/log";
+		# $log_file = "$branch_folder/$CURRENT_BRANCH/log";
 		# $index_folder = "$branch_folder/$CURRENT_BRANCH/index_files";
 	}
 }
@@ -193,6 +193,20 @@ sub commitMergeChanges {
 	print $LOG "$current_commit_number $message\n";
 	close $LOG;
 	print "Committed as commit $current_commit_number\n";
+}
+
+# sub rewriteLog {
+# 	my ($commit_number, $msg) = @_;
+# 	open my $LOGIN, '<', $log_file or die "legit.pl: error: Failed to open $log_file\n";
+# 	for ($line = <$LOGIN>) {
+# 		if ($line =~ /(\d+) \w+)/) {
+# 			if ($1 == $commit_number) {
+# 				push "$commit_number $msg"
+# 			}
+# 		}
+# 	}
+
+	open my $LOGOUT, '>', $log_file or die "legit.pl: error: Failed to open $log_file\n";
 }
 
 sub updateIndex {
