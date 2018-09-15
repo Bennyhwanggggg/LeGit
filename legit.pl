@@ -206,8 +206,8 @@ sub commitMergeChanges {
 # 		}
 # 	}
 
-	open my $LOGOUT, '>', $log_file or die "legit.pl: error: Failed to open $log_file\n";
-}
+# 	open my $LOGOUT, '>', $log_file or die "legit.pl: error: Failed to open $log_file\n";
+# }
 
 sub updateIndex {
 	my (@to_be_indexed_files) = @_;
