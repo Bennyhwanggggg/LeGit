@@ -797,7 +797,8 @@ if ($ARGV[0] eq "checkout") {
 		exit 1;
 	}
 
-	# if commited file in current branch different from the branch we are checking out to, error legit.pl: error: Your changes to the following files would be overwritten by checkout:
+	# if file in current branch (not committed but may be added) different from the branch we are checking out to, error legit.pl: error: Your changes to the following files would be overwritten by checkout:
+	# file was previously commited in both branch, but was edited in the second one (added doesn't matter) so if checkout now since it is not commited, it will be overwritten
 
 
 
@@ -818,7 +819,8 @@ if ($ARGV[0] eq "checkout") {
 	} else {
 		$copy_from_folder = "$branch_folder/$target_branch/commits/$commit_number";
 	}
-	copyAllFiles($copy_from_folder, $PATH);
+
+	# copyAllFiles($copy_from_folder, $PATH);
 
 	# if file exist in current branch commit but not target branch commit, remove it
 	my $current_branch_commit_number = getbranchCommitNumber($current_branch);
@@ -827,6 +829,28 @@ if ($ARGV[0] eq "checkout") {
 	if ($current_branch eq "master"){
 		$current_branch_commits_folder = "$commits_master_directory/$current_branch_commit_number";
 	}
+
+	# if file in current branch (not committed but may be added) different from the branch we are checking out to, error legit.pl: error: Your changes to the following files would be overwritten by checkout:
+	# file was previously commited in both branch, but was edited in the second one (added doesn't matter) so if checkout now since it is not commited, it will be overwritten
+	foreach $file (glob("*")) {
+		$current_path = "$current_branch_commits_folder/$file";
+		$target_path = "$target_branch_commits_folder/$file";
+		if (-e $current_path and -e $target_path) {
+			if (compare($file, $target_path) != 0) {
+				push @list_of_loss, $file;
+			} 
+		}
+	}
+	if (@list_of_loss) {
+		print "legit.pl: error: Your changes to the following files would be overwritten by checkout:\n";
+		foreach $lost (@list_of_loss) {
+			print "$lost\n";
+		}
+		exit 1;
+	}
+
+	copyAllFiles($copy_from_folder, $PATH);
+
 	# at this point we know the current directory at least have all the file from target branch
 	# we need to remove tracked files in current directory that are not in current branch, so if a file exist in
 	# current branch but not target, remove it?
