@@ -752,6 +752,10 @@ if ($ARGV[0] eq "checkout") {
 		exit 1;
 	}
 	my $target_branch = $ARGV[0];
+	if ($target_branch ne "master" and ! -e "$branch_folder/$target_branch") {
+		print "legit.pl: error: unknown branch '$branch'\n";
+		exit 1;
+	}
 	# Update current branch marker
 	open $BRANCHCHECK, '<', $branch_track or die "failed to read to $branch_track - $!\n";
 	my $current_branch = <$BRANCHCHECK>;
