@@ -835,10 +835,12 @@ if ($ARGV[0] eq "checkout") {
 	foreach $file (glob("*")) {
 		$current_path = "$current_branch_commits_folder/$file";
 		$target_path = "$target_branch_commits_folder/$file";
-		# print "checking to see if both $file and $target_path exists\n";
+		# print "checking to see if $target_path exists\n";
 		if (-e $target_path) {
+			# print "checking if $current_path exist and if $file and $current_path are different\n";
 			if (-e $current_path and compare($file, $current_path) != 0) {
-				# print "$file is not commited from $current_path\n";
+				push @list_of_loss, $file;
+			} elsif (! -e $current_path) {
 				push @list_of_loss, $file;
 			}
 		}
