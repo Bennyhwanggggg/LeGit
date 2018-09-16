@@ -285,7 +285,7 @@ sub copyAllFilesButKeepCurrentIfSame {
 		my $file_name = basename($file);
 		my $dest_file = "$dest_folder/$file_name";
 		# print "copied from $file to $dest_file\n";
-		if (compare($dest_file, $file) != 0){
+		if (compare($dest_file, $file) == 0){
 			copy($file, $dest_file);
 		}
 	}
