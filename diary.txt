@@ -9,4 +9,6 @@
 12/09/2018	00:15	00:45	Coding			Modified add to account for removed file 
 13/09/2018	19:00	23:30	Coding and debug	Implemented rm, status
 14/09/2018	19:00	02:00	Coding			Implemented branch, checkout and merge
-15/09/2019	10:00	20:10	Debug			Debug merge and checkout with overwritten work, merge conflicts fix.
+15/09/2018	10:00	20:10	Debug			Debug merge and checkout with overwritten work, merge conflicts fix.
+16/09/2018	09:00	14:00	Debug and Coding 	Fix merge with unsaved work and branch delete
+16/09/2018	18:00	22:30	Testing and Refractoring	Cleaned up code and added comment. Also added test scripts
