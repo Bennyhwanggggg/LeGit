@@ -1,0 +1,112 @@
+legit.pl init:
+Initialized empty legit repository in .legit
+legit.pl add file1 file2 file3:
+legit.pl commit -m 'commit 1':
+Committed as commit 0
+legit.pl branch b1:
+legit.pl rm --force file2:
+1
+2
+3
+4
+24
+6
+7
+8
+9
+10
+legit.pl branch b2:
+legit.pl checkout b1:
+legit.pl: error: Your changes to the following files would be overwritten by checkout:
+file1
+expected.txt
+file1
+file3
+file4
+legit.pl
+result.txt
+legit.pl add file4:
+legit.pl commit -m commit-2:
+Committed as commit 1
+legit.pl status:
+expected.txt - untracked
+file1 - changes in index
+file3 - same as repo
+file4 - changes in index
+legit.pl - untracked
+result.txt - untracked
+legit.pl checkout b2:
+legit.pl: error: Your changes to the following files would be overwritten by checkout:
+file1
+legit.pl commit -a -m commit-3:
+Committed as commit 2
+legit.pl status:
+expected.txt - untracked
+file1 - same as repo
+file3 - same as repo
+file4 - same as repo
+legit.pl - untracked
+result.txt - untracked
+legit.pl checkout b2:
+Switched to branch 'b2'
+expected.txt
+file1
+file2
+file3
+legit.pl
+result.txt
+legit.pl merge b1 -m merge-b1-b2:
+Already up to date
+legit.pl status:
+expected.txt - untracked
+file1 - file modified and changes in index
+file2 - untracked
+file3 - same as repo
+file4 - added to index
+legit.pl - untracked
+result.txt - untracked
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+legit.pl status:
+expected.txt - untracked
+file1 - file modified and changes in index
+file2 - untracked
+file3 - same as repo
+file4 - added to index
+legit.pl - untracked
+result.txt - untracked
+legit.pl checkout master:
+Switched to branch 'master'
+legit.pl status:
+expected.txt - untracked
+file1 - same as repo
+file3 - same as repo
+file4 - same as repo
+legit.pl - untracked
+result.txt - untracked
+legit.pl merge b2 -m merge-master-b2:
+Auto-merging file1
+Committed as commit 3
+legit.pl status:
+expected.txt - untracked
+file1 - same as repo
+file2 - same as repo
+file3 - same as repo
+file4 - same as repo
+legit.pl - untracked
+result.txt - untracked
+expected.txt
+file1
+file2
+file3
+file4
+legit.pl
+result.txt

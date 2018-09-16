@@ -1,0 +1,36 @@
+legit.pl init:
+Initialized empty legit repository in .legit
+legit.pl add file1 file2 file3:
+legit.pl branch b1:
+legit.pl: error: your repository does not have any commits yet
+legit.pl commit -m 'commit 1':
+Committed as commit 0
+legit.pl rm --cached file2:
+legit.pl status:
+expected.txt - untracked
+file1 - same as repo
+file2 - untracked
+file3 - same as repo
+legit.pl - untracked
+result.txt - untracked
+legit.pl branch b1:
+legit.pl rm --cached file3:
+legit.pl checkout b1:
+Switched to branch 'b1'
+legit.pl status:
+expected.txt - untracked
+file1 - same as repo
+file2 - untracked
+file3 - untracked
+legit.pl - untracked
+result.txt - untracked
+legit.pl add file2:
+legit.pl status:
+expected.txt - untracked
+file1 - same as repo
+file2 - same as repo
+file3 - untracked
+legit.pl - untracked
+result.txt - untracked
+legit.pl checkout master:
+Switched to branch 'master'
