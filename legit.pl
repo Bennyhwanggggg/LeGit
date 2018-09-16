@@ -910,8 +910,8 @@ if ($ARGV[0] eq "checkout") {
 		exit 1;
 	}
 
-	# copyAllFiles($copy_from_folder, $PATH);
-	copyAllFilesButKeepCurrentIfSame($copy_from_folder, $PATH);
+	copyAllFiles($copy_from_folder, $PATH);
+	# copyAllFilesButKeepCurrentIfSame($copy_from_folder, $PATH);
 
 	# at this point we know the current directory at least have all the file from target branch
 	# we need to remove tracked files in current directory that are not in current branch, so if a file exist in
