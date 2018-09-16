@@ -274,6 +274,23 @@ sub copyAllFiles {
 	}
 }
 
+sub copyAllFilesButKeepCurrentIfSame {
+	my ($source_folder, $dest_folder) = @_;
+	mkdir $dest_folder if !-e $dest_folder;
+	for $file (glob($source_folder . "/*")){
+		# print "copying $file to $dest_folder\n";
+		if (-d $file){
+			next;
+		}
+		my $file_name = basename($file);
+		my $dest_file = "$dest_folder/$file_name";
+		# print "copied from $file to $dest_file\n";
+		if (compare($dest_file, $file) != 0){
+			copy($file, $dest_file);
+		}
+	}
+}
+
 sub checkIfTwoFoldersAreTheSame {
 	my ($folder_1, $folder_2) = @_;
 	for $file (glob($folder_1 . '/*')) {
@@ -893,7 +910,8 @@ if ($ARGV[0] eq "checkout") {
 		exit 1;
 	}
 
-	copyAllFiles($copy_from_folder, $PATH);
+	# copyAllFiles($copy_from_folder, $PATH);
+	copyAllFilesButKeepCurrentIfSame($copy_from_folder, $PATH);
 
 	# at this point we know the current directory at least have all the file from target branch
 	# we need to remove tracked files in current directory that are not in current branch, so if a file exist in
