@@ -845,15 +845,6 @@ if ($ARGV[0] eq "checkout") {
 	# if file in current branch (not committed but may be added) different from the branch we are checking out to, error legit.pl: error: Your changes to the following files would be overwritten by checkout:
 	# file was previously commited in both branch, but was edited in the second one (added doesn't matter) so if checkout now since it is not commited, it will be overwritten
 
-
-
-	# check commits
-	# if ($current_branch eq "master") {
-	# 	my $commit_number = getCommitNumber();
-	# } else {
-	# 	my $commit_number = getbranchCommitNumber($current_branch);
-	# }
-	# copy everything from the target branch into current directory
 	# if master, don't use branch folder
 	# if file exist in current branch commit but not target branch commit, remove it
 
@@ -877,26 +868,26 @@ if ($ARGV[0] eq "checkout") {
 
 	# if file in current branch (not committed but may be added) different from the branch we are checking out to, error legit.pl: error: Your changes to the following files would be overwritten by checkout:
 	# file was previously commited in both branch, but was edited in the second one (added doesn't matter) so if checkout now since it is not commited, it will be overwritten
-	foreach $file (glob("*")) {
-		$current_path = "$current_branch_commits_folder/$file";
-		$target_path = "$target_branch_commits_folder/$file";
-		# print "checking to see if $target_path exists\n";
-		if (-e $target_path) {
-			# print "checking if $current_path exist and if $file and $current_path are different\n";
-			if (-e $current_path and compare($file, $current_path) != 0) {
-				push @list_of_loss, $file;
-			} elsif (! -e $current_path) {
-				push @list_of_loss, $file;
-			}
-		}
-	}
-	if (@list_of_loss) {
-		print "legit.pl: error: Your changes to the following files would be overwritten by checkout:\n";
-		foreach $lost (@list_of_loss) {
-			print "$lost\n";
-		}
-		exit 1;
-	}
+	# foreach $file (glob("*")) {
+	# 	$current_path = "$current_branch_commits_folder/$file";
+	# 	$target_path = "$target_branch_commits_folder/$file";
+	# 	# print "checking to see if $target_path exists\n";
+	# 	if (-e $target_path) {
+	# 		# print "checking if $current_path exist and if $file and $current_path are different\n";
+	# 		if (-e $current_path and compare($file, $current_path) != 0) {
+	# 			push @list_of_loss, $file;
+	# 		} elsif (! -e $current_path) {
+	# 			push @list_of_loss, $file;
+	# 		}
+	# 	}
+	# }
+	# if (@list_of_loss) {
+	# 	print "legit.pl: error: Your changes to the following files would be overwritten by checkout:\n";
+	# 	foreach $lost (@list_of_loss) {
+	# 		print "$lost\n";
+	# 	}
+	# 	exit 1;
+	# }
 
 	copyAllFiles($copy_from_folder, $PATH);
 
