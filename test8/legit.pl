@@ -274,6 +274,23 @@ sub copyAllFiles {
 	}
 }
 
+sub copyAllFilesButKeepCurrentIfSame {
+	my ($source_folder, $dest_folder) = @_;
+	mkdir $dest_folder if !-e $dest_folder;
+	for $file (glob($source_folder . "/*")){
+		# print "copying $file to $dest_folder\n";
+		if (-d $file){
+			next;
+		}
+		my $file_name = basename($file);
+		my $dest_file = "$dest_folder/$file_name";
+		# print "copied from $file to $dest_file\n";
+		if (compare($dest_file, $file) == 0){
+			copy($file, $dest_file);
+		}
+	}
+}
+
 sub checkIfTwoFoldersAreTheSame {
 	my ($folder_1, $folder_2) = @_;
 	for $file (glob($folder_1 . '/*')) {
@@ -845,15 +862,6 @@ if ($ARGV[0] eq "checkout") {
 	# if file in current branch (not committed but may be added) different from the branch we are checking out to, error legit.pl: error: Your changes to the following files would be overwritten by checkout:
 	# file was previously commited in both branch, but was edited in the second one (added doesn't matter) so if checkout now since it is not commited, it will be overwritten
 
-
-
-	# check commits
-	# if ($current_branch eq "master") {
-	# 	my $commit_number = getCommitNumber();
-	# } else {
-	# 	my $commit_number = getbranchCommitNumber($current_branch);
-	# }
-	# copy everything from the target branch into current directory
 	# if master, don't use branch folder
 	# if file exist in current branch commit but not target branch commit, remove it
 
@@ -881,14 +889,18 @@ if ($ARGV[0] eq "checkout") {
 		$current_path = "$current_branch_commits_folder/$file";
 		$target_path = "$target_branch_commits_folder/$file";
 		# print "checking to see if $target_path exists\n";
-		if (-e $target_path) {
-			# print "checking if $current_path exist and if $file and $current_path are different\n";
-			if (-e $current_path and compare($file, $current_path) != 0) {
-				push @list_of_loss, $file;
-			} elsif (! -e $current_path) {
-				push @list_of_loss, $file;
-			}
+		if (-e $target_path and ! -e $current_path) {
+			push @list_of_loss, $file;
 		}
+
+		# if (-e $target_path) {
+		# 	# print "checking if $current_path exist and if $file and $current_path are different\n";
+		# 	if (-e $current_path and compare($file, $current_path) != 0) {
+		# 		push @list_of_loss, $file;
+		# 	} elsif (! -e $current_path) {
+		# 		push @list_of_loss, $file;
+		# 	}
+		# }
 	}
 	if (@list_of_loss) {
 		print "legit.pl: error: Your changes to the following files would be overwritten by checkout:\n";
@@ -899,6 +911,7 @@ if ($ARGV[0] eq "checkout") {
 	}
 
 	copyAllFiles($copy_from_folder, $PATH);
+	# copyAllFilesButKeepCurrentIfSame($copy_from_folder, $PATH);
 
 	# at this point we know the current directory at least have all the file from target branch
 	# we need to remove tracked files in current directory that are not in current branch, so if a file exist in

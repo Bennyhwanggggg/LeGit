@@ -1,10 +1,9 @@
 legit.pl init:
 Initialized empty legit repository in .legit
-legit.pl add file1 file2 file3:
+legit.pl add file1 file2:
 legit.pl commit -m 'commit 1':
 Committed as commit 0
 legit.pl branch b1:
-legit.pl rm --force file2:
 legit.pl checkout b1:
 Switched to branch 'b1'
 expected.txt
@@ -13,13 +12,17 @@ file2
 file3
 legit.pl
 result.txt
-legit.pl status:
-expected.txt - untracked
-file1 - changes in index
-file2 - untracked
-file3 - same as repo
-legit.pl - untracked
-result.txt - untracked
+legit.pl add file3:
+legit.pl commit -m commit-2:
+Committed as commit 1
 legit.pl checkout master:
-legit.pl: error: Your changes to the following files would be overwritten by checkout:
+Switched to branch 'master'
+expected.txt
 file1
+file2
+legit.pl
+result.txt
+legit.pl log:
+0 commit 1
+legit.pl merge b1 -m merge-b1-master:
+Committed as commit 1
