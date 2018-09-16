@@ -872,16 +872,13 @@ if ($ARGV[0] eq "checkout") {
 		$current_path = "$current_branch_commits_folder/$file";
 		$target_path = "$target_branch_commits_folder/$file";
 		# print "checking to see if $target_path exists\n";
-		# if a file exist and it
-
 		if (-e $target_path) {
 			# print "checking if $current_path exist and if $file and $current_path are different\n";
 			if (-e $current_path and compare($file, $current_path) != 0) {
 				push @list_of_loss, $file;
+			} elsif (! -e $current_path) {
+				push @list_of_loss, $file;
 			}
-			# } elsif (! -e $current_path) {
-			# 	push @list_of_loss, $file;
-			# }
 		}
 	}
 	if (@list_of_loss) {
