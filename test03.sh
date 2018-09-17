@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # test 3 checks add, commit, rm --forced, status, log, add, commit, status, rm -- cached, status, legit rm
+# aim to test if rm --forced and rm -- cahched is working properly and if status is correctly affected by them
 
 test_folder="test3"
 if test -e $test_folder

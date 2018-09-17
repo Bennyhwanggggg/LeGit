@@ -1,6 +1,8 @@
 #!/bin/sh
 
 # test 6 checks add, commit, rm --cached, branch, rm --cached, checkout, status, add, status, checkout
+# check the behaviour of rm -- cached and branching
+
 test_folder="test6"
 if test -e $test_folder
 then

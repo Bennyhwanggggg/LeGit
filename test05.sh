@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # test 5 checks add, commit, rm --cache, commit -a -m, commit, log, add, commit, rm -forced
+# aim to check if rm --cache and forced are affecting the ability to commit properly
 
 test_folder="test5"
 if test -e $test_folder

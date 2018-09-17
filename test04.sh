@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # test 4 checks add, commit, rm --forced, commit, show, status, rm -- cached, commit, show, rm, commit -am, show, status
+# CHeck if rm -- forced combined with rm --cached are resulting in the right status
 
 test_folder="test4"
 if test -e $test_folder

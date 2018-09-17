@@ -13,3 +13,4 @@
 16/09/2018	09:00	14:00	Debug and Coding 	Fix merge with unsaved work and branch delete
 16/09/2018	18:00	22:30	Testing and Refractoring	Cleaned up code and added comment. Also added test scripts
 17/09/2018	22:30	23:30	Update			Updated status according to new change in spec
+18/09/2018	09:15	09:45	Update tests		Added description to each test case to show what they are testing

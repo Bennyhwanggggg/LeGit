@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # test 1 checks add, commit, log, add, log, commit, log, show, failed commit, log
+# aim to test if commit, log and show are working propely
 
 test_folder="test1"
 if test -e $test_folder

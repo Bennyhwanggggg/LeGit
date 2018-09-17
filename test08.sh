@@ -1,6 +1,8 @@
 #!/bin/sh
 
-# test 7 checks add, commit, branch, checkout, add, commit, checkout, log, merge, log
+# test 8 checks add, commit, branch, checkout, add, commit, checkout, log, merge, log
+# check if branch, merge and log are working as intended
+
 test_folder="test8"
 if test -e $test_folder
 then

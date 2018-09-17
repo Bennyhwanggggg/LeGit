@@ -1,6 +1,8 @@
 #!/bin/sh
 
 # test 7 checks add, commit, branch, rm --forced, checkout, add, commit, ls, checkout, ls, cat, status
+# check the behaviour of rm--forced and branching
+
 test_folder="test7"
 if test -e $test_folder
 then

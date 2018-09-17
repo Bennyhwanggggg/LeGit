@@ -1,6 +1,8 @@
 #!/bin/sh
 
-# test 9 checks add, commit, branch, rm, commit, checkout, merge conflict, checkout, delete, log
+# test 9 checks add, commit, branch, rm, commit, checkout, merge conflict, checkout, delete
+# check merge conflict and delete branch are working
+
 test_folder="test9"
 if test -e $test_folder
 then

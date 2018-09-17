@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # test 0 checks error message and add, commit, commit, commit -a -m
+# aim to check if all error message are properly done
 
 test_folder="test0"
 if test -e $test_folder
