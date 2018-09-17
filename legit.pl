@@ -692,12 +692,12 @@ if ($ARGV[0] eq "status") {
 			if (compare($file, $committed_file) == 0 and compare($file, $indexed_file) == 0) {
 				$all_files{$file} = "same as repo";
 			# modified and changed in index if current != index and index != commited
-			} elsif (compare($file, $indexed_file) != 0 and compare($indexed_file, $committed_file)) {
+			} elsif (compare($file, $indexed_file) != 0 and compare($indexed_file, $committed_file) != 0) {
 				$all_files{$file} = "file changed, different changes staged for commit"; #"file modified and changes in index";
-			} elsif (compare($committed_file, $indexed_file) != 0) {
-				$all_files{$file} = "file changed, changes not staged for commit"; # "file modified";
+			} elsif (compare($committed_file, $indexed_file) != 0 and compare($file, $indexed_file) == 0) {
+				$all_files{$file} = "file changed, changes staged for commit"; # "file modified";
 			} elsif (compare($file, $indexed_file) != 0){
-				$all_files{$file} = "file changed, changes staged for commit" #"changes in index";
+				$all_files{$file} = "file changed, changes not staged for commit"; #"changes in index";
 			}
 		# handle delete cases, if only not in current => file deleted, not in both index and current => deleted
 		} elsif (! -e $file and ! -e $indexed_file and -e $committed_file) {
