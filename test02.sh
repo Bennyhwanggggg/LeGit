@@ -29,7 +29,7 @@ echo "legit.pl add $test_file_1:" >> $expected
 echo "legit.pl commit -m 'commit 1':\nCommitted as commit 0" >> $expected
 echo "legit.pl commit -a -m commit2:\nnothing to commit" >> $expected
 echo "legit.pl status:\nexpected.txt - untracked\n$test_file_1 - same as repo\nlegit.pl - untracked\nresult.txt - untracked" >> $expected
-echo "legit.pl status:\nexpected.txt - untracked\n$test_file_1 - changes in index\nlegit.pl - untracked\nresult.txt - untracked" >> $expected
+echo "legit.pl status:\nexpected.txt - untracked\n$test_file_1 - file changed, changes not staged for commit\nlegit.pl - untracked\nresult.txt - untracked" >> $expected
 echo "legit.pl commit -a -m commit3:\nCommitted as commit 1" >> $expected
 echo "legit.pl add $test_file_2 $test_file_3:" >> $expected
 echo "legit.pl status:\nexpected.txt - untracked\n$test_file_1 - same as repo\n$test_file_2 - added to index\n$test_file_3 - added to index\nlegit.pl - untracked\nresult.txt - untracked" >> $expected

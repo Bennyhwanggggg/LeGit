@@ -32,7 +32,7 @@ echo "legit.pl log:\n0 commit 1" >> $expected
 echo "legit.pl show 0:$test_file_2:\nabcdefg" >> $expected
 echo "legit.pl show :$test_file_2:\nlegit.pl: error: '$test_file_2' not found in index" >> $expected
 echo "legit.pl show :$test_file_1:\n123456" >> $expected
-echo "legit.pl status:\nexpected.txt - untracked\n$test_file_1 - changes in index\n$test_file_2 - deleted\n$test_file_3 - same as repo\nlegit.pl - untracked\nresult.txt - untracked" >> $expected
+echo "legit.pl status:\nexpected.txt - untracked\n$test_file_1 - file changed, changes not staged for commit\n$test_file_2 - deleted\n$test_file_3 - same as repo\nlegit.pl - untracked\nresult.txt - untracked" >> $expected
 echo "legit.pl rm --cached $test_file_3:" >> $expected
 echo "legit.pl rm --cached $test_file_1 $test_file_2:\nlegit.pl: error: '$test_file_2' is not in the legit repository" >> $expected
 echo "legit.pl rm --cached $test_file_1:" >> $expected

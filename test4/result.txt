@@ -21,7 +21,7 @@ legit.pl show :file1:
 123456
 legit.pl status:
 expected.txt - untracked
-file1 - changes in index
+file1 - file changed, changes not staged for commit
 file2 - deleted
 file3 - same as repo
 legit.pl - untracked

@@ -441,10 +441,15 @@ if ($ARGV[0] eq "commit") {
 			exit 1;
 		}
 		my $current_commit_number = getCommitNumber();
+		my @currently_added = glob($index_folder . '/*');
 		# if index same as whats commited in the branch's folder
 		if (checkIfIndexSameAsRepo($current_commit_number) == 1){
 			print "nothing to commit\n";
 			exit 0;
+		}
+		if ((!-e "$commits_directory/0" and @currently_added == 0) or (@currently_added == 0 and checkIfTwoFoldersAreTheSame($commits_directory, PATH) == 1)) {
+			print "nothing to commit\n";
+			exit 1;
 		}
 		$current_commit_number = getSysCommitNumber();
 		$current_commit_number++;
@@ -466,9 +471,14 @@ if ($ARGV[0] eq "commit") {
 		updateIndex(@to_be_indexed_files);
 		my $current_commit_number = getCommitNumber();
 		# check content
-		if (checkIfIndexSameAsRepo($current_commit_number) == 1){
+		my @currently_added = glob($index_folder . '/*');
+		if (checkIfIndexSameAsRepo($current_commit_number) == 1) {
 			print "nothing to commit\n";
 			exit 0;
+		}
+		if ((!-e "$commits_directory/0" and @currently_added == 0) or (@currently_added == 0 and checkIfTwoFoldersAreTheSame($commits_directory, PATH) == 1)) {
+			print "nothing to commit\n";
+			exit 1;
 		}
 		$current_commit_number = getSysCommitNumber();
 		$current_commit_number++;
@@ -513,7 +523,7 @@ if ($ARGV[0] eq "show") {
 		exit 1;
 	}
 	if (@ARGV == 0) {
-		print "usage: $0 <commit>:<filename>\n";
+		print "usage: legit.pl show <commit>:<filename>\n";
 		exit 1;
 	}
 	$commit_filename = shift @ARGV;
@@ -525,7 +535,7 @@ if ($ARGV[0] eq "show") {
 	}
 	@input = split /:/, $commit_filename;
 	if (@input > 2){
-		print "usage: legit.pl <commit>:<filename>\n";
+		print "usage: legit.pl show <commit>:<filename>\n";
 		exit 1;
 	}
 	$commit_number = shift @input;
@@ -568,6 +578,7 @@ if ($ARGV[0] eq "show") {
 		print "legit.pl: error: unknown commit '$commit_number'\n";
 		exit 1;
 	}
+	exit 0;
 }
 
 # Rm command
@@ -738,7 +749,7 @@ if ($ARGV[0] eq "branch") {
 	} elsif ($ARGV[0] eq "-d") {
 		shift @ARGV;
 		if (@ARGV != 1) {
-			print "usage: legit.pl [-d] <branch>\n";
+			print "usage: legit.pl branch [-d] <branch>\n";
 			exit 1;
 		}
 		$branch_to_delete = shift @ARGV;
@@ -765,8 +776,8 @@ if ($ARGV[0] eq "branch") {
 	} else {
 		# create new branch
 		my $new_branch_name = shift @ARGV;
-		if (@ARGV) {
-			print "usage: legit.pl [-d] <branch>\n";
+		if (@ARGV or $new_branch_name =~ /-[A-Za-z]+/) {
+			print "usage: legit.pl branch [-d] <branch>\n";
 			exit 1;
 		}
 		$new_branch = "$branch_folder/$new_branch_name";
@@ -799,7 +810,7 @@ if ($ARGV[0] eq "checkout") {
 	}
 	shift @ARGV;
 	if (@ARGV != 1) {
-		print "usage: legit.pl checkout <branch-name>\n";
+		print "usage: legit.pl checkout";#  <branch-name>\n";
 		exit 1;
 	}
 	my $target_branch = $ARGV[0];

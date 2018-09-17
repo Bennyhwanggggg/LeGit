@@ -12,8 +12,7 @@ if (!@ARGV) {
 	print "Usage: $0 <comand>\n";
 }
 
-# $index_master_file = "$init_directory/index";
-
+# key directories setup
 $init_directory = ".legit";
 $commits_directory = "$init_directory/commits";
 $index_file = "$init_directory/index";
@@ -24,9 +23,8 @@ $branch_track = "$init_directory/currentBranch";
 $commit_num = "$init_directory/lastcommitnumber";
 
 $commits_master_directory = "$init_directory/commits";
-# $index_master_folder = "$init_directory/index_files";
-# $log_master_file = "$init_directory/log";
 
+# init setup
 if (@ARGV == 1 and $ARGV[0] eq "init") {
 	if (!-e $init_directory) {
 		mkdir $init_directory or die "legit.pl: error: Failed to create $init_directory - $!\n";
@@ -50,6 +48,7 @@ if (@ARGV == 1 and $ARGV[0] eq "init") {
 	}
 }
 
+# Branch setup 
 $CURRENT_BRANCH = "master";
 if (! -z $branch_track) {
 	if (!-e $init_directory) {
@@ -61,12 +60,13 @@ if (! -z $branch_track) {
 	close $BRANCHGET;
 	if ($CURRENT_BRANCH ne "master") {
 		$commits_directory = "$branch_folder/$CURRENT_BRANCH/commits";
-		# $index_file = "$branch_folder/$CURRENT_BRANCH/index";
 		$log_file = "$branch_folder/$CURRENT_BRANCH/log";
-		# $index_folder = "$branch_folder/$CURRENT_BRANCH/index_files";
 	}
 }
 
+###### Helper functions #####
+
+# update commit number
 sub updateCommitNum {
 	open my $IN, '<', $commit_num or die "legit.pl: error: failed to open $commit_num\n";
 	my $n = <$IN>;
@@ -77,7 +77,7 @@ sub updateCommitNum {
 	close $OUT;
 }
 
-# for commit accross all repo
+# Get commit number accross all repo
 sub getSysCommitNumber {
 	open my $IN, '<', $commit_num or die "legit.pl: error: failed to open $commit_num\n";
 	my $n = <$IN>;
@@ -85,7 +85,7 @@ sub getSysCommitNumber {
 	return $n;
 }
 
-# get commit of current branch oo master
+# get commit of current branch 
 sub getCommitNumber{
 	my @list_of_commit_dirs = glob($commits_directory . '/*');
 	if (@list_of_commit_dirs == 0){
@@ -102,9 +102,7 @@ sub getbranchCommitNumber{
 	if ($branch eq "master") {
 		$branch_commit_folder = $commits_master_directory;
 	} 
-	# print "Getting commit number from $branch_commit_folder\n";
 	my @list_of_commit_dirs = glob( $branch_commit_folder . '/*');
-	# print "@list_of_commit_dirs\n";
 	if (@list_of_commit_dirs == 0){
 		return -1;
 	}
@@ -112,7 +110,7 @@ sub getbranchCommitNumber{
 	return basename($list_of_commit_dirs[$#list_of_commit_dirs]);
 }
 
-# get commit number of a specified branch
+# get commit number of a specified branch's previous version
 sub getSecondLastbranchCommitNumber{
 	my ($branch) = @_;
 	my $branch_commit_folder = "$branch_folder/$branch/commits";
@@ -126,7 +124,6 @@ sub getSecondLastbranchCommitNumber{
 	if (@list_of_commit_dirs == 1){
 		return basename($list_of_commit_dirs[$#list_of_commit_dirs]);
 	}
-	# @list_of_commit_dirs = sort @list_of_commit_dirs;
 	return basename($list_of_commit_dirs[$#list_of_commit_dirs-1]);
 }
 
@@ -137,7 +134,6 @@ sub checkIfIndexSameAsRepo {
 	if ($current_commit_number < 0) { # when there is no previous commit
 		return 0;
 	}
-	# if ($current_commit_number != 0) {
 	my $latest_commit_folder = "$commits_directory/$current_commit_number";
 	for $file (glob($index_folder . '/*')) {
 		my $file_name = basename($file, "*");
@@ -157,6 +153,7 @@ sub checkIfIndexSameAsRepo {
 	return 1;
 }
 
+# commit function
 sub commitChanges {
 	my ($current_commit_number, $message) = @_;
 	my $new_commit_folder = "$commits_directory/$current_commit_number";
@@ -175,6 +172,7 @@ sub commitChanges {
 	updateCommitNum();
 }
 
+# commit used for merging
 sub commitMergeChanges {
 	my ($current_commit_number, $message, $merge_log) = @_; # need from folder's log file as well
 	$prev_commit_number = $current_commit_number;
@@ -183,20 +181,19 @@ sub commitMergeChanges {
 	if (!-e $new_commit_folder) {
 		mkdir $new_commit_folder or die "legit.pl: error: failed to create $new_commit_folder $!\n";
 	}
-	# print "commiting to $new_commit_folder\n";
 	for $file (glob("$commits_directory/$prev_commit_number" . '/*')) {
 		my $file_name = basename($file, "*");
 		copy($file, "$new_commit_folder/$file_name") or die "legit.pl: error: failed to copy '$file' into '$new_commit_folder/$file'. - $!\n";
 	}
 	open my $LOG, '>>', $log_file or die "legit.pl: error: Failed to open $log_file\n";
 	updateCommitNum();
-	# $syscommitNumber = getSysCommitNumber();
 	print $LOG "$current_commit_number $message\n";
 	close $LOG;
 	print "Committed as commit $current_commit_number\n";
 	mergeLog($merge_log, $log_file);
 }
 
+# used to update log file when merging
 sub mergeLog {
 	my ($merge_from_log, $merge_to_log) = @_;
 	open my $TO_IN, '<', $merge_to_log or die "legit.pl: error: Failed to open $merge_to_log\n";
@@ -224,6 +221,7 @@ sub mergeLog {
 	close $LOGOUT;
 }
 
+# update index file, I implemented this in the begining but I think it became redundant later..
 sub updateIndex {
 	my (@to_be_indexed_files) = @_;
 	open my $INDEX_OUT, '>', $index_file or die "legit.pl: error: can not open $index_file: $!\n";
@@ -262,14 +260,12 @@ sub copyAllFiles {
 	my ($source_folder, $dest_folder) = @_;
 	mkdir $dest_folder if !-e $dest_folder;
 	for $file (glob($source_folder . "/*")){
-		# print "copying $file to $dest_folder\n";
 		if (-d $file){
-			# return copyAllFiles($file, $dest_folder);
 			next;
 		}
 		my $file_name = basename($file);
 		my $dest_file = "$dest_folder/$file_name";
-		# print "copied from $file to $dest_file\n";
+
 		copy($file, $dest_file);
 	}
 }
@@ -278,13 +274,11 @@ sub copyAllFilesButKeepCurrentIfSame {
 	my ($source_folder, $dest_folder) = @_;
 	mkdir $dest_folder if !-e $dest_folder;
 	for $file (glob($source_folder . "/*")){
-		# print "copying $file to $dest_folder\n";
 		if (-d $file){
 			next;
 		}
 		my $file_name = basename($file);
 		my $dest_file = "$dest_folder/$file_name";
-		# print "copied from $file to $dest_file\n";
 		if (compare($dest_file, $file) == 0){
 			copy($file, $dest_file);
 		}
@@ -310,19 +304,18 @@ sub checkIfTwoFoldersAreTheSame {
 	return 1;
 }
 
-sub checkMergeConflict { # base = current branch commited (folder2 commited), # current directory (folder 2 file), # folder1 file
+sub checkMergeConflict { # compare the file in two repo with their common ancestor
 	my ($folder_1, $folder_2) = @_;
-	my $base_commit_num = getSecondLastbranchCommitNumber($CURRENT_BRANCH);
+	my $base_commit_num = getSecondLastbranchCommitNumber($CURRENT_BRANCH); # get common ancestor
 	my $base_folder = "$commits_directory/$base_commit_num";
+	# first check if there is any merge conflict, so another pass is used later if there is no conflict
 	for $file (glob($folder_1 . '/*')) {
 		my $file_name = basename($file, "*");
 		my $check_file_path = "$folder_2/$file_name";
 		if ( -e $check_file_path or (compare($file, $check_file_path) != 0)) {
 			# get base version if any
 			$base_file = "$base_folder/$file_name";
-			# print "$base_file, $check_file_path, $file_name\n";
 			if (-e $base_file){ # base merge
-				# open my $F1, '<', $file_name or die "legit.pl: error: failed to read $file_name\n";
 				open my $F1, '<', $file or die "legit.pl: error: failed to read $file\n";
 				open my $F2, '<', $check_file_path or die "legit.pl: error: failed to read $check_file_path\n";
 				open my $F3, '<', $base_file or die "legit.pl: error: failed to read $base_file\n";
@@ -330,7 +323,6 @@ sub checkMergeConflict { # base = current branch commited (folder2 commited), # 
 					my $line1 = <$F1>;
 					my $line2 = <$F2>;
 					my $line3 = <$F3>;
-					# print "$file: $line1, $check_file_path: $line2, $base_file: $line3\n";
 					if ($line1 ne $line3 and $line2 ne $line3) {
 						push @merge_conflict, $file;
 						last
@@ -368,12 +360,8 @@ sub checkMergeConflict { # base = current branch commited (folder2 commited), # 
 		# print "To be merged: $file,  $file_name,  $check_file_path\n";
 		if ( -e $check_file_path or (compare($file, $check_file_path) != 0)) {
 			# get base version if any
-			# $base_commit_num = getbranchCommitNumber($CURRENT_BRANCH);
-			# $base_folder = "$commits_directory/$base_commit_num";
 			$base_file = "$base_folder/$file_name";
-			# print "base file is $base_file\n";
 			if (-e $base_file){ # base merge
-				# open my $F1, '<', $file_name or die "legit.pl: error: failed to read $file_name\n";
 				open my $F1, '<', $file or die "legit.pl: error: failed to read $file\n";
 				open my $F2, '<', $check_file_path or die "legit.pl: error: failed to read $check_file_path\n";
 				open my $F3, '<', $base_file or die "legit.pl: error: failed to read $base_file\n";
@@ -381,7 +369,6 @@ sub checkMergeConflict { # base = current branch commited (folder2 commited), # 
 					my $line1 = <$F1>;
 					my $line2 = <$F2>;
 					my $line3 = <$F3>;
-					# print "checking $file: $line1, $check_file_path: $line2, $base_file: $line3\n";
 					if ($line1 eq $line3 and $line2 ne $line3) {
 						push @lines, $line2;
 					}	elsif ($line1 ne $line3 and $line2 eq $line3) {
@@ -413,12 +400,7 @@ sub checkMergeConflict { # base = current branch commited (folder2 commited), # 
 	return 0;
 }
 
-# Add should check if the added file is the same as the one that is commited
-# if it is the same, don't do anything (don't add to index?)
-# otherwise, 
-# Index will contain list of files and their contents. But also use another folder and actually copy the file into there?
-# so when a file is added, first check if it exist in that folder, if it is, replaced it, otherwise copy it into it and 
-# scan through that folder while adding everythng in that folder into index's content
+# Add command
 if ($ARGV[0] eq "add") {
 	if (!-e $init_directory) {
 		print "legit.pl: error: no $init_directory directory containing legit repository exists\n";
@@ -435,7 +417,6 @@ if ($ARGV[0] eq "add") {
 				exit 1;
 			}
 		}
-
 		# just check if it is in index_file_path and rewrite index at the end by scanning through the index_file_path
 		updateIndexFolder(@ARGV);
 		my @to_be_indexed_files = glob($index_folder . '/*' );
@@ -444,8 +425,8 @@ if ($ARGV[0] eq "add") {
 	}
 }
 
+
 # Commit command
-# when commit compare the current index with current commit index
 if ($ARGV[0] eq "commit") {
 	shift @ARGV;
 	if (!@ARGV) {
@@ -460,11 +441,15 @@ if ($ARGV[0] eq "commit") {
 			exit 1;
 		}
 		my $current_commit_number = getCommitNumber();
-		# if commits have been made so far
-		# if (-z $index_file or checkIfIndexSameAsRepo($current_commit_number) == 1){
+		my @currently_added = glob($index_folder . '/*');
+		# if index same as whats commited in the branch's folder
 		if (checkIfIndexSameAsRepo($current_commit_number) == 1){
 			print "nothing to commit\n";
 			exit 0;
+		}
+		if ((!-e "$commits_directory/0" and @currently_added == 0) or (@currently_added == 0 and checkIfTwoFoldersAreTheSame($commits_directory, PATH) == 1)) {
+			print "nothing to commit\n";
+			exit 1;
 		}
 		$current_commit_number = getSysCommitNumber();
 		$current_commit_number++;
@@ -481,20 +466,19 @@ if ($ARGV[0] eq "commit") {
 			print "usage: legit.pl commit [-a] -m commit-message\n";
 			exit 1;
 		}
-		# get all the files in the current index and update them
-		# check if anything in index to commit
-		# if (-z $index_file) {
-		# 	print "nothing to commit\n";
-		# 	exit 0;
-		# }
-
 		my @to_be_indexed_files = glob($index_folder . '/*' );
 		updateIndexFolder(@to_be_indexed_files);
 		updateIndex(@to_be_indexed_files);
 		my $current_commit_number = getCommitNumber();
-		if (checkIfIndexSameAsRepo($current_commit_number) == 1){
+		# check content
+		my @currently_added = glob($index_folder . '/*');
+		if (checkIfIndexSameAsRepo($current_commit_number) == 1) {
 			print "nothing to commit\n";
 			exit 0;
+		}
+		if ((!-e "$commits_directory/0" and @currently_added == 0) or (@currently_added == 0 and checkIfTwoFoldersAreTheSame($commits_directory, PATH) == 1)) {
+			print "nothing to commit\n";
+			exit 1;
 		}
 		$current_commit_number = getSysCommitNumber();
 		$current_commit_number++;
@@ -506,7 +490,8 @@ if ($ARGV[0] eq "commit") {
 	}
 }
 
-# log command
+
+# Log command
 if ($ARGV[0] eq "log") {
 	if (-z $log_file) {
 		print "legit.pl: error: your repository does not have any commits yet\n";
@@ -521,7 +506,6 @@ if ($ARGV[0] eq "log") {
 		print "usage: $0 log\n";
 		exit 1;
 	}
-
 	open $LOGREAD, '<', $log_file or die "legit.pl: error: failed to open $log_file\n";
 	@lines = reverse <$LOGREAD>;
 	foreach $line (@lines) {
@@ -530,7 +514,8 @@ if ($ARGV[0] eq "log") {
 	exit 0;
 }
 
-# show command
+
+# Show command
 if ($ARGV[0] eq "show") {
 	shift @ARGV;
 	if (!-e "$commits_directory/0") {
@@ -538,7 +523,7 @@ if ($ARGV[0] eq "show") {
 		exit 1;
 	}
 	if (@ARGV == 0) {
-		print "usage: $0 <commit>:<filename>\n";
+		print "usage: legit.pl show <commit>:<filename>\n";
 		exit 1;
 	}
 	$commit_filename = shift @ARGV;
@@ -550,7 +535,7 @@ if ($ARGV[0] eq "show") {
 	}
 	@input = split /:/, $commit_filename;
 	if (@input > 2){
-		print "usage: legit.pl <commit>:<filename>\n";
+		print "usage: legit.pl show <commit>:<filename>\n";
 		exit 1;
 	}
 	$commit_number = shift @input;
@@ -593,9 +578,10 @@ if ($ARGV[0] eq "show") {
 		print "legit.pl: error: unknown commit '$commit_number'\n";
 		exit 1;
 	}
+	exit 0;
 }
 
-# rm
+# Rm command
 if ($ARGV[0] eq "rm") {
 	if (!-e "$commits_directory/0") {
 		print "legit.pl: error: your repository does not have any commits yet\n";
@@ -603,11 +589,9 @@ if ($ARGV[0] eq "rm") {
 	}
 	my $current_commit_number = getCommitNumber();
 	my $command = shift @ARGV;
-	if ($ARGV[0] eq "--cached") {
-		# only remove from index
+	if ($ARGV[0] eq "--cached") { # only remove from index
 		shift @ARGV;
-
-		for $file (@ARGV) { # reference implementation checks everything first before deleting
+		for $file (@ARGV) { # check everything first before deleting
 			my $index_file_path = "$index_folder/$file"; 
 			my $commited_file = "$commits_directory/$current_commit_number/$file";
 			if (!-e $index_file_path){
@@ -619,7 +603,7 @@ if ($ARGV[0] eq "rm") {
 				exit 1;
 			}
 		}
-		for $file (@ARGV) {
+		for $file (@ARGV) { # proceed to delete
 			my $index_file_path = "$index_folder/$file"; 
 			unlink $index_file_path;
 			my @to_be_indexed_files = glob($index_folder . '/*' );
@@ -628,7 +612,6 @@ if ($ARGV[0] eq "rm") {
 		exit 0;
 	} elsif ($ARGV[0] eq "--force") {
 		shift @ARGV;
-		# only check if it is in index?
 		for $file (@ARGV) {
 			my $index_file_path = "$index_folder/$file";
 			if (!-e $index_file_path) {
@@ -646,10 +629,7 @@ if ($ARGV[0] eq "rm") {
 		updateIndex(@to_be_indexed_files);
 		exit 0;
 	} else {
-		# if not in repo or index = not in legit repo
-		# if in index but not repo or different from repo (file was modifed and added) =  has changes staged in the index
-		# if file is differnet from index (and repo) differnt to working file (changes made in directory  but no add)
-		
+		# normal rm, which checks index and commit before deleting
 		for $file (@ARGV) {
 			my $commited_file = "$commits_directory/$current_commit_number/$file";
 			my $index_file_path = "$index_folder/$file";
@@ -684,11 +664,7 @@ if ($ARGV[0] eq "rm") {
 	}
 }
 
-# legit rm = not in index or current ==> deleted
-# rm = not in current but in index ==> file deleted
-# if not in all three ==> gone
-# if in current and not index ==> untracked
-# in index but not in commit ==> added to index
+# Status command
 if ($ARGV[0] eq "status") {
 	if (!-e "$commits_directory/0") {
 		print "legit.pl: error: your repository does not have any commits yet\n";
@@ -717,6 +693,7 @@ if ($ARGV[0] eq "status") {
 		}
 		$all_files{basename($file)}++;
 	}
+	# check the status of all files
 	for $file (keys %all_files) {
 		$committed_file = "$commits_directory/$current_commit_number/$file";
 		$indexed_file = "$index_folder/$file";
@@ -726,28 +703,24 @@ if ($ARGV[0] eq "status") {
 			if (compare($file, $committed_file) == 0 and compare($file, $indexed_file) == 0) {
 				$all_files{$file} = "same as repo";
 			# modified and changed in index if current != index and index != commited
-			} elsif (compare($file, $indexed_file) != 0 and compare($indexed_file, $committed_file)) {
-				$all_files{$file} = "file modified and changes in index";
-			} elsif (compare($committed_file, $indexed_file) != 0) {
-				$all_files{$file} = "file modified";
+			} elsif (compare($file, $indexed_file) != 0 and compare($indexed_file, $committed_file) != 0) {
+				$all_files{$file} = "file changed, different changes staged for commit"; #"file modified and changes in index";
+			} elsif (compare($committed_file, $indexed_file) != 0 and compare($file, $indexed_file) == 0) {
+				$all_files{$file} = "file changed, changes staged for commit"; # "file modified";
 			} elsif (compare($file, $indexed_file) != 0){
-				$all_files{$file} = "changes in index";
+				$all_files{$file} = "file changed, changes not staged for commit"; #"changes in index";
 			}
 		# handle delete cases, if only not in current => file deleted, not in both index and current => deleted
 		} elsif (! -e $file and ! -e $indexed_file and -e $committed_file) {
 			$all_files{$file} = "deleted";
 		} elsif (-e $indexed_file and !-e $committed_file) {
-			# added to index only if it doesn;t exist in commit
+			# added to index only if it doesn't exist in commit
 			$all_files{$file} = "added to index";
 		} elsif (! -e $file and -e $indexed_file) {
 			$all_files{$file} = "file deleted";
 		} elsif (-e $file and ! -e $indexed_file) {
 			$all_files{$file} = "untracked";
 		}
-		# } elsif (-e $indexed_file and !-e $committed_file) {
-		# 	# added to index only if it doesn;t exist in commit
-		# 	$all_files{$file} = "added to index";
-		# }
 	}
 	foreach my $file (sort keys %all_files){
 		print "$file - $all_files{$file}\n";
@@ -755,6 +728,8 @@ if ($ARGV[0] eq "status") {
 	exit 0;
 }
 
+
+# branch command
 if ($ARGV[0] eq "branch") {
 	if (!-e "$commits_directory/0") {
 		print "legit.pl: error: your repository does not have any commits yet\n";
@@ -774,7 +749,7 @@ if ($ARGV[0] eq "branch") {
 	} elsif ($ARGV[0] eq "-d") {
 		shift @ARGV;
 		if (@ARGV != 1) {
-			print "usage: legit.pl [-d] <branch>\n";
+			print "usage: legit.pl branch [-d] <branch>\n";
 			exit 1;
 		}
 		$branch_to_delete = shift @ARGV;
@@ -787,12 +762,7 @@ if ($ARGV[0] eq "branch") {
 			print "legit.pl: error: branch '$branch_to_delete' does not exist\n";
 			exit 1;
 		}
-
-		# if delete branch with unmerged work, legit.pl: error: branch 'branch1' has unmerged changes
-		# check if branch to delete's commit folder is same as current branch's commit folder
-
-
-		# unmerged if repo to delete is different from master?
+		# unmerged if repo to delete is different from what is in the current branch's commit folder
 		$branch_to_delete_commits = "$branch_folder_to_del/commits";
 		$branch_commit_number = getbranchCommitNumber($branch_to_delete);
 		$current_branch_commit_number = getbranchCommitNumber($CURRENT_BRANCH);
@@ -804,9 +774,10 @@ if ($ARGV[0] eq "branch") {
 		print "Deleted branch '$branch_to_delete'\n";
 		exit 0;
 	} else {
+		# create new branch
 		my $new_branch_name = shift @ARGV;
-		if (@ARGV) {
-			print "usage: legit.pl [-d] <branch>\n";
+		if (@ARGV or $new_branch_name =~ /-[A-Za-z]+/) {
+			print "usage: legit.pl branch [-d] <branch>\n";
 			exit 1;
 		}
 		$new_branch = "$branch_folder/$new_branch_name";
@@ -820,7 +791,6 @@ if ($ARGV[0] eq "branch") {
 		mkdir $new_branch_commit_folder if ! -e $new_branch_commit_folder;
 		copy($index_file, "$new_branch/index");
 		copy($log_file, "$new_branch/log");
-		# copyAllFiles($index_folder, $new_branch_index_folder);
 		# copy commit history
 		for $folder (glob($commits_directory . "/*")) {
 			my $folder_name = $folder;
@@ -832,6 +802,7 @@ if ($ARGV[0] eq "branch") {
 	exit 0;
 }
 
+# Checkout command
 if ($ARGV[0] eq "checkout") {
 	if (!-e "$commits_master_directory/0") {
 		print "legit.pl: error: your repository does not have any commits yet\n";
@@ -839,7 +810,7 @@ if ($ARGV[0] eq "checkout") {
 	}
 	shift @ARGV;
 	if (@ARGV != 1) {
-		print "usage: legit.pl checkout <branch-name>\n";
+		print "usage: legit.pl checkout";#  <branch-name>\n";
 		exit 1;
 	}
 	my $target_branch = $ARGV[0];
@@ -858,23 +829,13 @@ if ($ARGV[0] eq "checkout") {
 		print "Already on '$target_branch'\n";
 		exit 1;
 	}
-
-	# if file in current branch (not committed but may be added) different from the branch we are checking out to, error legit.pl: error: Your changes to the following files would be overwritten by checkout:
-	# file was previously commited in both branch, but was edited in the second one (added doesn't matter) so if checkout now since it is not commited, it will be overwritten
-
-	# if master, don't use branch folder
-	# if file exist in current branch commit but not target branch commit, remove it
-
-	# when change to a branch, copy everything commited in that branch out and everythin in current to its respective folder
+	# when change to a branch, copy everything commited in that branch out and everything in current to its respective folder
 	my $commit_number = getbranchCommitNumber($target_branch);
-	if ($target_branch eq "master") {
+	if ($target_branch eq "master") { # if master, don't use branch folder
 		$copy_from_folder = "$commits_master_directory/$commit_number";
 	} else {
 		$copy_from_folder = "$branch_folder/$target_branch/commits/$commit_number";
 	}
-
-	# copyAllFiles($copy_from_folder, $PATH);
-
 	# if file exist in current branch commit but not target branch commit, remove it
 	my $current_branch_commit_number = getbranchCommitNumber($current_branch);
 	my $target_branch_commits_folder = $copy_from_folder;
@@ -883,8 +844,7 @@ if ($ARGV[0] eq "checkout") {
 		$current_branch_commits_folder = "$commits_master_directory/$current_branch_commit_number";
 	}
 
-	# if file in current branch (not committed but may be added) different from the branch we are checking out to, error legit.pl: error: Your changes to the following files would be overwritten by checkout:
-	# file was previously commited in both branch, but was edited in the second one (added doesn't matter) so if checkout now since it is not commited, it will be overwritten
+	# if a file id different in target branch's commit folder but not current branch's commit, changes will be lost
 	foreach $file (glob("*")) {
 		$current_path = "$current_branch_commits_folder/$file";
 		$target_path = "$target_branch_commits_folder/$file";
@@ -892,15 +852,6 @@ if ($ARGV[0] eq "checkout") {
 		if (-e $target_path and ! -e $current_path) {
 			push @list_of_loss, $file;
 		}
-
-		# if (-e $target_path) {
-		# 	# print "checking if $current_path exist and if $file and $current_path are different\n";
-		# 	if (-e $current_path and compare($file, $current_path) != 0) {
-		# 		push @list_of_loss, $file;
-		# 	} elsif (! -e $current_path) {
-		# 		push @list_of_loss, $file;
-		# 	}
-		# }
 	}
 	if (@list_of_loss) {
 		print "legit.pl: error: Your changes to the following files would be overwritten by checkout:\n";
@@ -911,11 +862,7 @@ if ($ARGV[0] eq "checkout") {
 	}
 
 	copyAllFiles($copy_from_folder, $PATH);
-	# copyAllFilesButKeepCurrentIfSame($copy_from_folder, $PATH);
 
-	# at this point we know the current directory at least have all the file from target branch
-	# we need to remove tracked files in current directory that are not in current branch, so if a file exist in
-	# current branch but not target, remove it?
 	foreach $file (glob("*")) {
 		$current_path = "$current_branch_commits_folder/$file";
 		$target_path = "$target_branch_commits_folder/$file";
@@ -928,13 +875,12 @@ if ($ARGV[0] eq "checkout") {
 	print $BRANCHUPDATE "$target_branch" if $target_branch ne "master";
 	close $BRANCHUPDATE;
 
-	# only put files in master folder if checking out from master
 	print "Switched to branch '$target_branch'\n";
 	exit 0;
 }
 
-# merge uses current commit number?
 
+# Merge command
 if ($ARGV[0] eq 'merge') {
 	if (!-e "$commits_master_directory/0") {
 		print "legit.pl: error: your repository does not have any commits yet\n";
@@ -963,7 +909,7 @@ if ($ARGV[0] eq 'merge') {
 		}
 	} else {
 		$branch = shift @ARGV;
-		if ($branch =~ /-\w+/ ) {
+		if ($branch =~ /-\w+/ ) { # input v2
 			print "usage: legit.pl merge <branch|commit> -m message\n";
 			exit 1;
 		}
@@ -983,10 +929,12 @@ if ($ARGV[0] eq 'merge') {
 		$msg = shift @ARGV;
 	}
 
+	# check if the branch exists
 	if ($branch ne "master" and ! -e "$branch_folder/$branch") {
 		print "legit.pl: error: unknown branch '$branch'\n";
 		exit 1;
 	}
+	# get relevant last commits
 	my $pull_from_folder_commits = "$branch_folder/$branch/commits";
 	my $pull_to_folder_commits = "$branch_folder/$CURRENT_BRANCH/commits";
 	my $pull_from_log = "$branch_folder/$branch/log";
@@ -1010,8 +958,8 @@ if ($ARGV[0] eq 'merge') {
 	}
 
 	# check merge conflicts
-	# merge if difference in same line it is conflict, if differnce not same, accept longer one?
-	checkMergeConflict($pull_from_folder, $pull_to_folder);
+	# base merge, if accepts whichever different from base. If both different, merge conflict is raised
+	checkMergeConflict($pull_from_folder, $pull_to_folder); 
 	for $f (glob($pull_from_folder . "/*")) {
 		my $file_name = basename($f);
 		my $copy_to = "$pull_to_folder/$file_name";
@@ -1022,10 +970,11 @@ if ($ARGV[0] eq 'merge') {
 	copyAllFiles($pull_to_folder, $PATH);
 	updateIndexFolder(glob($pull_to_folder . "/*"));
 	commitMergeChanges($pull_to_commit_number, $msg, $pull_from_log);
-	# update index folder using the current file committed
 	exit 0;
 }
 
+
+# if invalid or command
 if (@ARGV == 1) {
 	print "legit.pl: error: unknown command $ARGV[0]\n";
 }
