@@ -189,8 +189,8 @@ sub commitMergeChanges {
 	updateCommitNum();
 	print $LOG "$current_commit_number $message\n";
 	close $LOG;
-	# print "Committed as commit $current_commit_number\n";
-	print "Fast-forward: no commit created\n";
+	print "Committed as commit $current_commit_number\n";
+	# print "Fast-forward: no commit"
 	mergeLog($merge_log, $log_file);
 }
 
