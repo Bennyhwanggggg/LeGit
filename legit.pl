@@ -412,10 +412,10 @@ if ($ARGV[0] eq "add") {
 			exit 1;
 		}
 		for $file (@ARGV) {
-			if (! -e $file) {
+			if (! -e $file and $file ! -e "$index_folder/$file") {
 				print "legit.pl: error: can not open '$file'\n";
 				exit 1;
-			}
+			} 
 		}
 		# just check if it is in index_file_path and rewrite index at the end by scanning through the index_file_path
 		updateIndexFolder(@ARGV);
