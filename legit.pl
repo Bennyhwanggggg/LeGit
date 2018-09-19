@@ -1036,8 +1036,10 @@ if ($ARGV[0] eq 'merge') {
 	# e.g the files that exist in both don't have changes but there are new files in the other branch
 	$to_merge = 0;
 	for $file (glob($pull_to_folder . "/*")) {
-		my $current_file = "$pull_to_folder/$file";
-		my $other_branch_file = "$pull_from_folder/$file";
+		$file_name = basename($file);
+		my $current_file = "$pull_to_folder/$file_name";
+		my $other_branch_file = "$pull_from_folder/$file_name";
+		# print "1------$current_file,   $other_branch_file\n";
 		if (-e $current_file and -e $other_branch_file){
 			if (compare($current_file, $other_branch_file) != 0) {
 				$to_merge = 1;
@@ -1048,8 +1050,9 @@ if ($ARGV[0] eq 'merge') {
 
 	if ($to_merge == 0) {
 		for $file (glob($pull_from_folder . "/*")) {
-			my $current_file = "$pull_to_folder/$file";
-			my $other_branch_file = "$pull_from_folder/$file";
+			$file_name = basename($file);
+			my $current_file = "$pull_to_folder/$file_name";
+			my $other_branch_file = "$pull_from_folder/$file_name";
 			if (! -e $current_file and -e $other_branch_file) {
 				copy($other_branch_file, $current_file);
 			}
