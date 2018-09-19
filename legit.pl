@@ -581,6 +581,48 @@ if ($ARGV[0] eq "show") {
 	exit 0;
 }
 
+
+sub rm_cached {
+	my (@files) = @_;
+	for $file (@files) { # check everything first before deleting
+		my $index_file_path = "$index_folder/$file"; 
+		my $commited_file = "$commits_directory/$current_commit_number/$file";
+		if (!-e $index_file_path){
+			print "legit.pl: error: '$file' is not in the legit repository\n";
+			exit 1;
+		}
+		if (-e $commited_file and compare($commited_file, $index_file_path) != 0 and compare($index_file_path, $file) != 0) {
+			print "legit.pl: error: '$file' in index is different to both working file and repository\n";
+			exit 1;
+		}
+	}
+	for $file (@files) { # proceed to delete
+		my $index_file_path = "$index_folder/$file"; 
+		unlink $index_file_path;
+		my @to_be_indexed_files = glob($index_folder . '/*' );
+		updateIndex(@to_be_indexed_files);
+	}
+}
+
+sub rm_forced {
+	my (@files) = @_;
+	for $file (@files) {
+		my $index_file_path = "$index_folder/$file";
+		if (!-e $index_file_path) {
+			print "legit.pl: error: '$file' is not in the legit repository\n";
+			exit 1;
+		}
+	}
+	for $file (@files) {
+		if (-e $file) {
+			unlink $file;
+		}
+		updateIndexFolder($file);
+	}
+	my @to_be_indexed_files = glob($index_folder . '/*' );
+	updateIndex(@to_be_indexed_files);	
+}
+
 # Rm command
 if ($ARGV[0] eq "rm") {
 	if (!-e "$commits_directory/0") {
@@ -589,44 +631,56 @@ if ($ARGV[0] eq "rm") {
 	}
 	my $current_commit_number = getCommitNumber();
 	my $command = shift @ARGV;
+	if (@ARGV > 2) {
+		if (($ARGV[0] eq "--cached" and $ARGV[1] eq "--force") or ($ARGV[0] eq "--force" and $ARGV[1] eq "--cached")) {
+			shift @ARGV;
+			shift @ARGV;
+			if (@ARGV) {
+				rm_forced(@ARGV);
+			}
+			exit 0;
+		}
+	}
 	if ($ARGV[0] eq "--cached") { # only remove from index
 		shift @ARGV;
-		for $file (@ARGV) { # check everything first before deleting
-			my $index_file_path = "$index_folder/$file"; 
-			my $commited_file = "$commits_directory/$current_commit_number/$file";
-			if (!-e $index_file_path){
-				print "legit.pl: error: '$file' is not in the legit repository\n";
-				exit 1;
-			}
-			if (-e $commited_file and compare($commited_file, $index_file_path) != 0 and compare($index_file_path, $file) != 0) {
-				print "legit.pl: error: '$file' in index is different to both working file and repository\n";
-				exit 1;
-			}
-		}
-		for $file (@ARGV) { # proceed to delete
-			my $index_file_path = "$index_folder/$file"; 
-			unlink $index_file_path;
-			my @to_be_indexed_files = glob($index_folder . '/*' );
-			updateIndex(@to_be_indexed_files);
-		}
+		rm_cached(@ARGV);
+		# for $file (@ARGV) { # check everything first before deleting
+		# 	my $index_file_path = "$index_folder/$file"; 
+		# 	my $commited_file = "$commits_directory/$current_commit_number/$file";
+		# 	if (!-e $index_file_path){
+		# 		print "legit.pl: error: '$file' is not in the legit repository\n";
+		# 		exit 1;
+		# 	}
+		# 	if (-e $commited_file and compare($commited_file, $index_file_path) != 0 and compare($index_file_path, $file) != 0) {
+		# 		print "legit.pl: error: '$file' in index is different to both working file and repository\n";
+		# 		exit 1;
+		# 	}
+		# }
+		# for $file (@ARGV) { # proceed to delete
+		# 	my $index_file_path = "$index_folder/$file"; 
+		# 	unlink $index_file_path;
+		# 	my @to_be_indexed_files = glob($index_folder . '/*' );
+		# 	updateIndex(@to_be_indexed_files);
+		# }
 		exit 0;
 	} elsif ($ARGV[0] eq "--force") {
 		shift @ARGV;
-		for $file (@ARGV) {
-			my $index_file_path = "$index_folder/$file";
-			if (!-e $index_file_path) {
-				print "legit.pl: error: '$file' is not in the legit repository\n";
-				exit 1;
-			}
-		}
-		for $file (@ARGV) {
-			if (-e $file) {
-				unlink $file;
-			}
-			updateIndexFolder($file);
-		}
-		my @to_be_indexed_files = glob($index_folder . '/*' );
-		updateIndex(@to_be_indexed_files);
+		rm_forced(@ARGV);
+		# for $file (@ARGV) {
+		# 	my $index_file_path = "$index_folder/$file";
+		# 	if (!-e $index_file_path) {
+		# 		print "legit.pl: error: '$file' is not in the legit repository\n";
+		# 		exit 1;
+		# 	}
+		# }
+		# for $file (@ARGV) {
+		# 	if (-e $file) {
+		# 		unlink $file;
+		# 	}
+		# 	updateIndexFolder($file);
+		# }
+		# my @to_be_indexed_files = glob($index_folder . '/*' );
+		# updateIndex(@to_be_indexed_files);
 		exit 0;
 	} else {
 		# normal rm, which checks index and commit before deleting
