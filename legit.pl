@@ -584,6 +584,7 @@ if ($ARGV[0] eq "show") {
 
 sub rm_cached {
 	my (@files) = @_;
+	my $current_commit_number = getCommitNumber();
 	for $file (@files) { # check everything first before deleting
 		my $index_file_path = "$index_folder/$file"; 
 		my $commited_file = "$commits_directory/$current_commit_number/$file";
@@ -606,6 +607,7 @@ sub rm_cached {
 
 sub rm_forced {
 	my (@files) = @_;
+	my $current_commit_number = getCommitNumber();
 	for $file (@files) {
 		my $index_file_path = "$index_folder/$file";
 		if (!-e $index_file_path) {
