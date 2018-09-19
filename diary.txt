@@ -14,3 +14,4 @@
 16/09/2018	18:00	22:30	Testing and Refractoring	Cleaned up code and added comment. Also added test scripts
 17/09/2018	22:30	23:30	Update			Updated status according to new change in spec
 18/09/2018	09:15	09:45	Update tests		Added description to each test case to show what they are testing
+19/09/2018	20:00	12:15	Bug fix			Bug fix in commit, checkout based on new test case provided
