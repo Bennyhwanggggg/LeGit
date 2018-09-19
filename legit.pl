@@ -1040,7 +1040,7 @@ if ($ARGV[0] eq 'merge') {
 		my $other_branch_file = "$pull_from_folder/$file";
 		if (-e $current_file and -e $other_branch_file){
 			if (compare($current_file, $other_branch_file) != 0) {
-				to_merge = 1;
+				$to_merge = 1;
 				last;
 			}
 		}
