@@ -412,7 +412,7 @@ if ($ARGV[0] eq "add") {
 			exit 1;
 		}
 		for $file (@ARGV) {
-			if (! -e $file and $file ! -e "$index_folder/$file") {
+			if (! -e $file and ! -e "$index_folder/$file") {
 				print "legit.pl: error: can not open '$file'\n";
 				exit 1;
 			} 
