@@ -1022,6 +1022,7 @@ if ($ARGV[0] eq 'merge') {
 		print "Already up to date\n";
 		exit 1;
 	}
+
 	$pull_from_commit_number = getbranchCommitNumber($branch);
 	$pull_from_folder = "$pull_from_folder_commits/$pull_from_commit_number";
 	$pull_to_commit_number = getbranchCommitNumber($CURRENT_BRANCH);
@@ -1029,6 +1030,32 @@ if ($ARGV[0] eq 'merge') {
 	if (checkIfTwoFoldersAreTheSame($pull_from_folder, $pull_to_folder) != 0) {
 		print "Already up to date\n";
 		exit 1;
+	}
+
+	# if the branch we are pulling from only has new files, we just need to combine them without merge
+	# e.g the files that exist in both don't have changes but there are new files in the other branch
+	$to_merge = 0;
+	for $file (glob($pull_to_folder . "/*")) {
+		my $current_file = "$pull_to_folder/$file";
+		my $other_branch_file = "$pull_from_folder/$file";
+		if (-e $current_file and -e $other_branch_file){
+			if (compare($current_file, $other_branch_file) != 0) {
+				to_merge = 1;
+				last;
+			}
+		}
+	}
+
+	if (to_merge == 0) {
+		for $file (glob($pull_from_folder . "/*")) {
+			my $current_file = "$pull_to_folder/$file";
+			my $other_branch_file = "$pull_from_folder/$file";
+			if (! -e current_file and -e $other_branch_file) {
+				copy($other_branch_file, $current_file);
+			}
+		}
+		print "Fast-forward: no commit created\n";
+		exit 0;
 	}
 
 	# check merge conflicts
