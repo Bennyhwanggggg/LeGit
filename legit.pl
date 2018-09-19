@@ -1050,7 +1050,7 @@ if ($ARGV[0] eq 'merge') {
 		for $file (glob($pull_from_folder . "/*")) {
 			my $current_file = "$pull_to_folder/$file";
 			my $other_branch_file = "$pull_from_folder/$file";
-			if (! -e current_file and -e $other_branch_file) {
+			if (! -e $current_file and -e $other_branch_file) {
 				copy($other_branch_file, $current_file);
 			}
 		}
