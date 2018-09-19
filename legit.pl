@@ -1046,7 +1046,7 @@ if ($ARGV[0] eq 'merge') {
 		}
 	}
 
-	if (to_merge == 0) {
+	if ($to_merge == 0) {
 		for $file (glob($pull_from_folder . "/*")) {
 			my $current_file = "$pull_to_folder/$file";
 			my $other_branch_file = "$pull_from_folder/$file";
