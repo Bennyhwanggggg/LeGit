@@ -911,11 +911,14 @@ if ($ARGV[0] eq "checkout") {
 	# if temp folder for that branch has content, we pull from it instead
 	my @target_branch_temp_folder_content = glob( $target_branch_temp_folder . "/*");
 	if (@target_branch_temp_folder_content) {
-		print "temp folder has content\n";
+		# print "temp folder has content\n";
 		for $temp_file (@target_branch_temp_folder_content) {
-			print "$temp_file\n";
+			$file_name = basename($temp_file);
+			if (-e "$index_folder/$file_name") {
+				copy($temp_file, "$PATH/$file_name")
+			}
 		}
-		copyAllFiles($target_branch_temp_folder, $PATH);
+		# copyAllFiles($target_branch_temp_folder, $PATH);
 	} else {
 		copyAllFiles($copy_from_folder, $PATH); 
 	}
