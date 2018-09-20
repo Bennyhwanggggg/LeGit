@@ -836,7 +836,7 @@ if ($ARGV[0] eq "branch") {
 			copyAllFiles($folder, "$new_branch_commit_folder/$folder_name");
 		}
 		# create temp folder for later
-		$new_temp_folder = "$new_branch/temp"
+		$new_temp_folder = "$new_branch/temp";
 		mkdir $new_temp_folder or die "legit.pl: error: failed to create $new_temp_folder\n";
 		exit 0;
 	}
