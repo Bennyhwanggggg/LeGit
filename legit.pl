@@ -911,7 +911,6 @@ if ($ARGV[0] eq "checkout") {
 	# if temp folder for that branch has content, we pull from it instead
 	my @target_branch_temp_folder_content = glob( $target_branch_temp_folder . "/*");
 	if (@target_branch_temp_folder_content) {
-		# print "temp folder has content\n";
 		for $temp_file (@target_branch_temp_folder_content) {
 			$file_name = basename($temp_file);
 			if (-e "$index_folder/$file_name") {
@@ -925,8 +924,6 @@ if ($ARGV[0] eq "checkout") {
 	foreach $file (glob("*")) {
 		$current_path = "$current_branch_commits_folder/$file";
 		$target_path = "$target_branch_commits_folder/$file";
-		print "checking if file exist in $current_path\n";
-		print "checking if file not exist in $target_path\n";
 		if (-e $current_path and ! -e $target_path) {
 			unlink $file;
 		}
