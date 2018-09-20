@@ -912,6 +912,9 @@ if ($ARGV[0] eq "checkout") {
 	my @target_branch_temp_folder_content = glob( $target_branch_temp_folder . "/*");
 	if (@target_branch_temp_folder_content) {
 		print "temp folder has content\n";
+		for $temp_file (@target_branch_temp_folder_content) {
+			print "$temp_file\n";
+		}
 		copyAllFiles($target_branch_temp_folder, $PATH);
 	} else {
 		copyAllFiles($copy_from_folder, $PATH); 
