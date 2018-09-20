@@ -915,6 +915,7 @@ if ($ARGV[0] eq "checkout") {
 		for $temp_file (@target_branch_temp_folder_content) {
 			$file_name = basename($temp_file);
 			if (-e "$index_folder/$file_name") {
+				print "copying $index_folder/$file_name"
 				copy($temp_file, "$PATH/$file_name")
 			}
 		}
