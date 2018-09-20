@@ -905,7 +905,12 @@ if ($ARGV[0] eq "checkout") {
 	# need a temp folder to store changes that weren't commited and wipe temp folder if a commit was made
 	# check if any changes was made since last commit
 	if (checkIfTwoFoldersAreTheSame($PATH, $current_branch_commits_folder) == 0) {
-		copyAllFiles($PATH, $temp_folder); # if changes were made since last commit, we put them in temp folder
+		# copyAllFiles($PATH, $temp_folder); # if changes were made since last commit, we put them in temp folder
+		for $current_file (glob($PATH . "/*")) {
+			if (-e "$index_folder/$current_file") {
+				copy($current_file, "$temp_folder/$current_file");
+			}
+		}
 	}
 
 	# if temp folder for that branch has content, we pull from it instead
