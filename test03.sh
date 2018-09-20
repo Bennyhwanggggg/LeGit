@@ -3,16 +3,16 @@
 # test 3 checks add, commit, rm --forced, status, log, add, commit, status, rm -- cached, status, legit rm
 # aim to test if rm --forced and rm -- cahched is working properly and if status is correctly affected by them
 
-test_folder="test3"
-if test -e $test_folder
-then
-	rm -r $test_folder
-fi
+# test_folder="test3"
+# if test -e $test_folder
+# then
+# 	rm -r $test_folder
+# fi
 
-mkdir $test_folder
-cp "legit.pl" "$test_folder/legit.pl"
+# mkdir $test_folder
+# cp "legit.pl" "$test_folder/legit.pl"
 
-cd $test_folder
+# cd $test_folder
 
 test_file_1="file1"
 test_file_2="file2"
