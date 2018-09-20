@@ -874,8 +874,10 @@ if ($ARGV[0] eq "checkout") {
 	my $commit_number = getbranchCommitNumber($target_branch);
 	if ($target_branch eq "master") { # if master, don't use branch folder
 		$copy_from_folder = "$commits_master_directory/$commit_number";
+		$target_branch_temp_folder = "$init_directory/temp";
 	} else {
 		$copy_from_folder = "$branch_folder/$target_branch/commits/$commit_number";
+		$target_branch_temp_folder = "$branch_folder/$target_branch/temp";
 	}
 	# if file exist in current branch commit but not target branch commit, remove it
 	my $current_branch_commit_number = getbranchCommitNumber($current_branch);
@@ -907,7 +909,6 @@ if ($ARGV[0] eq "checkout") {
 	}
 
 	# if temp folder for that branch has content, we pull from it instead
-	$target_branch_temp_folder = "$branch_folder/$target_branch/temp";
 	my @target_branch_temp_folder_content = glob( $target_branch_temp_folder . "/*");
 	if (@target_branch_temp_folder_content) {
 		copyAllFiles($target_branch_temp_folder, $PATH);
