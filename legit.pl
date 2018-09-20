@@ -24,6 +24,8 @@ $commit_num = "$init_directory/lastcommitnumber";
 
 $commits_master_directory = "$init_directory/commits";
 
+$temp_folder = "$init_directory/temp";
+
 # init setup
 if (@ARGV == 1 and $ARGV[0] eq "init") {
 	if (!-e $init_directory) {
@@ -31,6 +33,7 @@ if (@ARGV == 1 and $ARGV[0] eq "init") {
 		mkdir $commits_directory or die "legit.pl: error: Failed to create $commits_directory - $!\n";
 		mkdir $index_folder or die "legit.pl: error: failed to create $index_folder = $!\n";
 		mkdir $branch_folder or die "legit.pl: error: failed to create $branch_folder\n";
+		mkdir $temp_folder or die "legit.pl: error: failed to create $temp_folder\n";
 		open my $INDEX_INIT, '>', $index_file or die "legit.pl: error: Failed to initalize $index_file\n";
 		close $INDEX_INIT;
 		open my $LOG_INIT, '>', $log_file or die "legit.pl: error: Failed to initalize $log_file\n";
@@ -61,6 +64,7 @@ if (! -z $branch_track) {
 	if ($CURRENT_BRANCH ne "master") {
 		$commits_directory = "$branch_folder/$CURRENT_BRANCH/commits";
 		$log_file = "$branch_folder/$CURRENT_BRANCH/log";
+		$temp_folder = "$branch_folder/$CURRENT_BRANCH/temp";
 	}
 }
 
@@ -484,6 +488,11 @@ if ($ARGV[0] eq "commit") {
 		$current_commit_number = getSysCommitNumber();
 		$current_commit_number++;
 		commitChanges($current_commit_number, $message);
+
+		# on commit, clear temp folder
+		for $temp_file (glob($temp_folder . "/*")) {
+			unlink $temp_file;
+		}
 		exit 0;
 	} else {
 		print "usage: legit.pl commit [-a] -m commit-message\n";
@@ -814,7 +823,7 @@ if ($ARGV[0] eq "branch") {
 			print "legit.pl: error: branch '$new_branch_name' already exists\n";
 			exit 1;
 		}
-		mkdir $new_branch or die "legit.pl: error: faile to create $new_branch\n";
+		mkdir $new_branch or die "legit.pl: error: failed to create $new_branch\n";
 		# my $new_branch_index_folder = "$new_branch/index_files";
 		my $new_branch_commit_folder = "$new_branch/commits";
 		mkdir $new_branch_commit_folder if ! -e $new_branch_commit_folder;
@@ -826,6 +835,8 @@ if ($ARGV[0] eq "branch") {
 			$folder_name =~ s/.*\///;
 			copyAllFiles($folder, "$new_branch_commit_folder/$folder_name");
 		}
+		# create temp folder for later
+		mkdir $temp_folder or die "legit.pl: error: failed to create $temp_folder\n";
 		exit 0;
 	}
 	exit 0;
@@ -877,7 +888,6 @@ if ($ARGV[0] eq "checkout") {
 	foreach $file (glob("*")) {
 		$current_path = "$current_branch_commits_folder/$file";
 		$target_path = "$target_branch_commits_folder/$file";
-		# print "checking to see if $target_path exists\n";
 		if (-e $target_path and ! -e $current_path) {
 			push @list_of_loss, $file;
 		}
@@ -889,8 +899,20 @@ if ($ARGV[0] eq "checkout") {
 		}
 		exit 1;
 	}
+	# need a temp folder to store changes that weren't commited and wipe temp folder if a commit was made
+	# check if any changes was made since last commit
+	if (checkIfTwoFoldersAreTheSame($PATH, $current_branch_commits_folder) == 0) {
+		copyAllFiles($PATH, $temp_folder); # if changes were made since last commit, we put them in temp folder
+	}
 
-	copyAllFiles($copy_from_folder, $PATH);
+	# if temp folder for that branch has content, we pull from it instead
+	$target_branch_temp_folder = "$branch_folder/$target_branch/temp";
+	my @target_branch_temp_folder_content = glob( $target_branch_temp_folder . "/*");
+	if (@target_branch_temp_folder_content) {
+		copyAllFiles($target_branch_temp_folder_content, $PATH);
+	} else {
+		copyAllFiles($copy_from_folder, $PATH); 
+	}
 
 	foreach $file (glob("*")) {
 		$current_path = "$current_branch_commits_folder/$file";
@@ -994,7 +1016,6 @@ if ($ARGV[0] eq 'merge') {
 		$file_name = basename($file);
 		my $current_file = "$pull_to_folder/$file_name";
 		my $other_branch_file = "$pull_from_folder/$file_name";
-		# print "1------$current_file,   $other_branch_file\n";
 		if (-e $current_file and -e $other_branch_file){
 			if (compare($current_file, $other_branch_file) != 0) {
 				$to_merge = 1;
