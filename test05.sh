@@ -18,5 +18,11 @@ legit.pl log
 legit.pl rm --cached file1 file3 
 legit.pl commit -a -m commit4 
 legit.pl rm --cached file1 
+legit.pl commit -m commit5
+legit.pl commit -a -m commit6
+echo test >> file3
+legit.pl add file3
+legit.pl status
+legit.pl log
 
 

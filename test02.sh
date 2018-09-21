@@ -22,5 +22,12 @@ legit.pl status
 legit.pl rm file3
 legit.pl commit -a -m commit4
 legit.pl status
+echo new > file4
+legit.pl status
+legit.pl add file4
+legit.pl status
+legit.pl rm file4
+legit.pl status
+
 
 

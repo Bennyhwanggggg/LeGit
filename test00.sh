@@ -13,6 +13,8 @@ legit.pl commit -a -m test
 legit.pl rm 
 legit.pl rm --force 
 legit.pl rm --cached 
+legit.pl rm --cached --force
+legit.pl rm --force --force
 legit.pl status 
 legit.pl branch 
 legit.pl commit -m test 

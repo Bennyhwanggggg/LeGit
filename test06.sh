@@ -20,3 +20,11 @@ legit.pl status
 legit.pl add file2
 legit.pl status
 legit.pl checkout master
+echo qwer > file1
+legit.pl commit -a -m commit2
+legit.pl log
+legit.pl status
+legit.pl add file2
+echo hjkl >> file2
+legit.pl status
+
