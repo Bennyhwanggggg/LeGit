@@ -1,8 +1,6 @@
 #!/bin/sh
 
-# test 2 checks add, commit, -a -m commit fail, -a -m commit, status, rm, legit rm, status
 # check if rm and commit are working
-
 
 legit.pl init
 echo 123456 > file1

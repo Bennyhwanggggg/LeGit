@@ -1,6 +1,5 @@
 #!/bin/sh
 
-# test 5 checks add, commit, rm --cache, commit -a -m, commit, log, add, commit, rm -forced
 # aim to check if rm --cache and forced are affecting the ability to commit properly
 
 legit.pl init 
@@ -24,5 +23,12 @@ echo test >> file3
 legit.pl add file3
 legit.pl status
 legit.pl log
+echo abcdefg >> file2
+legit.pl add file2
+legit.pl commit -m commit7
+legit.pl show :file1
+legit.pl show :file2
+legit.pl show 0:file1
+
 
 

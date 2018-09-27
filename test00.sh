@@ -1,7 +1,6 @@
 #!/bin/sh
 
-# test 0 checks error message and add, commit, commit, commit -a -m
-# aim to check if all error message are properly done and sub 0
+# aim to check if all error message are properly done and add, commit, log
 
 
 legit.pl init 

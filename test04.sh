@@ -1,8 +1,6 @@
 #!/bin/sh
 
-# test 4 checks add, commit, rm --forced, commit, show, status, rm -- cached, commit, show, rm, commit -am, show, status
-# CHeck if rm -- forced combined with rm --cached are resulting in the right status
-
+# CHeck if rm -- forced combined with rm --cached are resulting in the right status and show is working with it
 
 legit.pl init
 echo 123456 > file1
