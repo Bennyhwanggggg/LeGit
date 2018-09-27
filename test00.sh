@@ -37,4 +37,4 @@ legit.pl add file2
 echo "6" >> file
 legit.pl commit -m commit5
 legit.pl commit -a -m commit 6
-leigt.pl log
+legit.pl log

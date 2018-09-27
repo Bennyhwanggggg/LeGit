@@ -21,4 +21,12 @@ legit.pl rm --cached test_file_3
 legit.pl status 
 legit.pl rm test_file_3 
 legit.pl rm --force test_file_3 
+legit.pl status
+rm test_file1
+legit.pl status
+legit.pl log
+legit.pl commit -a -m commit02
+legit.pl status
+legit.pl log
+
 
