@@ -19,4 +19,18 @@ legit.pl checkout master
 ls
 legit.pl log
 legit.pl merge b1 -m merge-b1-master
+legit.pl branch b2
+legit.pl checkout b2
+seq 10 15 > file4
+legit.pl add file4
+legit.pl commit -a -m commit-3
+legit.pl branch b3
+legit.pl checkout b3
+seq 11 15 >> file4
+echo "abcde" > file5
+legit.pl add file4 file5
+legit.pl commit -m commit-4
+legit.pl checkout master
+legit.pl merge b3 -m merge-b3-master
+legit.pl log
 

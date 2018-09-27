@@ -16,3 +16,4 @@
 18/09/2018	09:15	09:45	Update tests		Added description to each test case to show what they are testing
 19/09/2018	20:00	12:15	Bug fix			Bug fix in commit, checkout based on new test case provided
 21/09/2018	15:00	19:00	bug fix and test	Updated test cases and attempted to fix bug with checkout 
+27/09/2018	19:45	20:15	Testing			Updated test cases for submission

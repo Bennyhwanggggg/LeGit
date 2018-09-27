@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # test 0 checks error message and add, commit, commit, commit -a -m
-# aim to check if all error message are properly done
+# aim to check if all error message are properly done and sub 0
 
 
 legit.pl init 
@@ -29,3 +29,12 @@ legit.pl commit -m commit1
 echo "another line" >> file
 legit.pl commit -m commit2 
 legit.pl commit -a -m commit3 
+legit.pl log
+echo "newfile created" > file2
+echo "another file" > file3
+legit.pl commit -a -m commit4
+legit.pl add file2
+echo "6" >> file
+legit.pl commit -m commit5
+legit.pl commit -a -m commit 6
+leigt.pl log

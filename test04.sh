@@ -29,4 +29,7 @@ legit.pl show :file1
 legit.pl show 0:file1
 rm file1
 legit.pl commit -a -m 'commit 3'
+legit.pl log
+legit.pl show :file1
+legit.pl status
 

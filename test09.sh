@@ -21,3 +21,11 @@ legit.pl commit -a -m commit-3
 legit.pl checkout master
 legit.pl merge b1 -m merge-1
 legit.pl branch -d b1
+legit.pl branch b2
+legit.pl checkout b2
+echo "newfile" > file4
+legit.pl add file4
+legit.pl rm file4
+rm file4
+legit.pl commit -a -m commit-4
+legit.pl log

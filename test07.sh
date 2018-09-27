@@ -23,5 +23,15 @@ legit.pl add file1
 legit.pl commit -a -m commit-3
 legit.pl checkout master
 cat file1
+legit.pl branch b2
+legit.pl branch b3
+legit.pl checkout b2
+seq 11 19 > file3
+legit.pl commit -m commit-4
+leigt.pl add file3
+legit.pl checkout b3
+legit.pl commit -a -m commit-5
+legit.pl checkout master
+legit.pl log
 
 
