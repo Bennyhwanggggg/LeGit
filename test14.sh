@@ -11,7 +11,7 @@ legit.pl commit -m commit1
 echo line1 > file3
 legit.pl add file2 file3
 seq 11 30 >> file1
-legit.pl commit -m commit2
+legit.pl commit -a -m commit2
 legit.pl branch b1
 legit.pl checkout b1
 legit.pl add file1 file2 file3
