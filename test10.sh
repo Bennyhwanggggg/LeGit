@@ -24,7 +24,7 @@ perl -pi -e 's/0/55/' file1
 legit.pl show :file1
 legit.pl status
 legit.pl commit -a -m commit-3
-leg.tpl add file3
+legit.tpl add file3
 legit.pl status
 legit.pl rm --force --cached file3
 legit.pl log
