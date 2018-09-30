@@ -650,6 +650,10 @@ if ($ARGV[0] eq "rm") {
 			if (@ARGV) {
 				for $file (@ARGV) { # proceed to delete
 					my $index_file_path = "$index_folder/$file"; 
+					if (!-e $index_file_path) {#(!-e $commited_file and !-e $index_file_path) {
+						print "legit.pl: error: '$file' is not in the legit repository\n";
+						exit 1;
+					}
 					unlink $index_file_path;
 					my @to_be_indexed_files = glob($index_folder . '/*' );
 					updateIndex(@to_be_indexed_files);
